@@ -21,6 +21,20 @@ import serial
 VERSION = "v1.0"
 
 cpuList = {
+    'attiny13': {
+        'name': 'ATtiny13',
+        'signature': [ 0x1e, 0x90, 0x07, ],
+        'flashPageWords': 16,
+        'flashPagesCount': 32,
+        'eepromSize': 64,
+    },
+    'attiny26': {
+        'name': 'ATtiny26',
+        'signature': [ 0x1e, 0x91, 0x09, ],
+        'flashPageWords': 16,
+        'flashPagesCount': 64,
+        'eepromSize': 128,
+    },
     'atmega8': {
         'name': 'ATmega8',
         'signature': [ 0x1e, 0x93, 0x07, ],
@@ -28,7 +42,99 @@ cpuList = {
         'flashPagesCount': 128,
         'eepromSize': 512,
     },
+    'atmega32': {
+        'name': 'ATmega32',
+        'signature': [ 0x1e, 0x95, 0x02, ],
+        'flashPageWords': 64,
+        'flashPagesCount': 256,
+        'eepromSize': 1024,
+    },
+    'atmega64': {
+        'name': 'ATmega64',
+        'signature': [ 0x1e, 0x96, 0x02, ],
+        'flashPageWords': 128,
+        'flashPagesCount': 256,
+        'eepromSize': 2048,
+    },
+    'atmega128': {
+        'name': 'ATmega128',
+        'signature': [ 0x1e, 0x97, 0x02, ],
+        'flashPageWords': 128,
+        'flashPagesCount': 512,
+        'eepromSize': 4096,
+    },
+    'atmega162': {
+        'name': 'ATmega162',
+        'signature': [ 0x1e, 0x94, 0x04, ],
+        'flashPageWords': 64,
+        'flashPagesCount': 128,
+        'eepromSize': 512,
+    },
+    'atmega644': {
+        'name': 'ATmega644',
+        'signature': [ 0x1e, 0x96, 0x09, ],
+        'flashPageWords': 128,
+        'flashPagesCount': 256,
+        'eepromSize': 2048,
+    },
+    'atmega644p': {
+        'name': 'ATmega644P',
+        'signature': [ 0x1e, 0x96, 0x0A, ],
+        'flashPageWords': 128,
+        'flashPagesCount': 256,
+        'eepromSize': 2048,
+    },
+    'atmega48': {
+        'name': 'ATmega48',
+        'signature': [ 0x1e, 0x92, 0x05, ],
+        'flashPageWords': 32,
+        'flashPagesCount': 64,
+        'eepromSize': 256,
+    },
+    'atmega48p': {
+        'name': 'ATmega48p',
+        'signature': [ 0x1e, 0x92, 0x0a, ],
+        'flashPageWords': 32,
+        'flashPagesCount': 64,
+        'eepromSize': 256,
+    },
+    'atmega88': {
+        'name': 'ATmega88',
+        'signature': [ 0x1e, 0x93, 0x0a, ],
+        'flashPageWords': 32,
+        'flashPagesCount': 128,
+        'eepromSize': 512,
+    },
+    'atmega88p': {
+        'name': 'ATmega88p',
+        'signature': [ 0x1e, 0x93, 0x0f, ],
+        'flashPageWords': 32,
+        'flashPagesCount': 128,
+        'eepromSize': 512,
+    },
+    'atmega168': {
+        'name': 'ATmega168',
+        'signature': [ 0x1e, 0x94, 0x06, ],
+        'flashPageWords': 64,
+        'flashPagesCount': 128,
+        'eepromSize': 512,
+    },
+    'atmega168p': {
+        'name': 'ATmega168p',
+        'signature': [ 0x1e, 0x94, 0x0b, ],
+        'flashPageWords': 64,
+        'flashPagesCount': 128,
+        'eepromSize': 512,
+    },
+    'atmega328p': {
+        'name': 'ATmega328p',
+        'signature': [ 0x1e, 0x95, 0x0f, ],
+        'flashPageWords': 64,
+        'flashPagesCount': 256,
+        'eepromSize': 1024,
+    },
 }
+
 
 class Dbg:
     def __init__(self, verbose = 3, graphLength = 50, useColors = True):
