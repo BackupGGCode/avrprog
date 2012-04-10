@@ -20,192 +20,193 @@ import serial
 
 VERSION = "v1.0"
 
-cpuList = {
-    'attiny13': {
+cpuList = [
+    {
+        'id': 'attiny13',
         'name': 'ATtiny13',
         'signature': [ 0x1e, 0x90, 0x07, ],
         'flashPageWords': 16,
         'flashPagesCount': 32,
         'eepromSize': 64,
         'fuses': ['fusel', 'fuseh', 'lock', 'cal'],
-    },
-    'attiny26': {
+    },{
+        'id': 'attiny26',
         'name': 'ATtiny26',
         'signature': [ 0x1e, 0x91, 0x09, ],
         'flashPageWords': 16,
         'flashPagesCount': 64,
         'eepromSize': 128,
         'fuses': ['fusel', 'fuseh', 'lock', 'cal'],
-    },
-    'atmega48': {
+    }, {
+        'id': 'atmega48',
         'name': 'ATmega48',
         'signature': [ 0x1e, 0x92, 0x05, ],
         'flashPageWords': 32,
         'flashPagesCount': 64,
         'eepromSize': 256,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega48p': {
+    }, {
+        'id': 'atmega48p',
         'name': 'ATmega48p',
         'signature': [ 0x1e, 0x92, 0x0a, ],
         'flashPageWords': 32,
         'flashPagesCount': 64,
         'eepromSize': 256,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega8': {
+    }, {
+        'id': 'atmega8',
         'name': 'ATmega8',
         'signature': [ 0x1e, 0x93, 0x07, ],
         'flashPageWords': 32,
         'flashPagesCount': 128,
         'eepromSize': 512,
         'fuses': ['fusel', 'fuseh', 'lock', 'cal'],
-    },
-    'atmega88': {
+    }, {
+        'id': 'atmega88',
         'name': 'ATmega88',
         'signature': [ 0x1e, 0x93, 0x0a, ],
         'flashPageWords': 32,
         'flashPagesCount': 128,
         'eepromSize': 512,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega88p': {
+    }, {
+        'id': 'atmega88p',
         'name': 'ATmega88p',
         'signature': [ 0x1e, 0x93, 0x0f, ],
         'flashPageWords': 32,
         'flashPagesCount': 128,
         'eepromSize': 512,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega16': {
+    }, {
+        'id': 'atmega16',
         'name': 'ATmega16',
         'signature': [ 0x1e, 0x94, 0x03, ],
         'flashPageWords': 64,
         'flashPagesCount': 128,
         'eepromSize': 512,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega162': {
+    }, {
+        'id': 'atmega162',
         'name': 'ATmega162',
         'signature': [ 0x1e, 0x94, 0x04, ],
         'flashPageWords': 64,
         'flashPagesCount': 128,
         'eepromSize': 512,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega164a': {
+    }, {
+        'id': 'atmega164a',
         'name': 'ATmega164p',
         'signature': [ 0x1e, 0x94, 0x0f, ],
         'flashPageWords': 64,
         'flashPagesCount': 128,
         'eepromSize': 512,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega164p': {
+    }, {
+        'id': 'atmega164p',
         'name': 'ATmega164p',
         'signature': [ 0x1e, 0x94, 0x0a, ],
         'flashPageWords': 64,
         'flashPagesCount': 128,
         'eepromSize': 512,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega168': {
+    }, {
+        'id': 'atmega168',
         'name': 'ATmega168',
         'signature': [ 0x1e, 0x94, 0x06, ],
         'flashPageWords': 64,
         'flashPagesCount': 128,
         'eepromSize': 512,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega168p': {
+    }, {
+        'id': 'atmega168p',
         'name': 'ATmega168p',
         'signature': [ 0x1e, 0x94, 0x0b, ],
         'flashPageWords': 64,
         'flashPagesCount': 128,
         'eepromSize': 512,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega32': {
+    }, {
+        'id': 'atmega32',
         'name': 'ATmega32',
         'signature': [ 0x1e, 0x95, 0x02, ],
         'flashPageWords': 64,
         'flashPagesCount': 256,
         'eepromSize': 1024,
         'fuses': ['fusel', 'fuseh', 'lock', 'cal'],
-    },
-    'atmega324p': {
+    }, {
+        'id': 'atmega324p',
         'name': 'ATmega324P',
         'signature': [ 0x1e, 0x95, 0x08, ],
         'flashPageWords': 64,
         'flashPagesCount': 256,
         'eepromSize': 1024,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega324a': {
+    }, {
+        'id': 'atmega324a',
         'name': 'ATmega324A',
         'signature': [ 0x1e, 0x95, 0x15, ],
         'flashPageWords': 64,
         'flashPagesCount': 256,
         'eepromSize': 1024,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega324pa': {
+    }, {
+        'id': 'atmega324pa',
         'name': 'ATmega324PA',
         'signature': [ 0x1e, 0x95, 0x11, ],
         'flashPageWords': 64,
         'flashPagesCount': 256,
         'eepromSize': 1024,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega328p': {
+    }, {
+        'id': 'atmega328p',
         'name': 'ATmega328p',
         'signature': [ 0x1e, 0x95, 0x0f, ],
         'flashPageWords': 64,
         'flashPagesCount': 256,
         'eepromSize': 1024,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega64': {
+    }, {
+        'id': 'atmega64',
         'name': 'ATmega64',
         'signature': [ 0x1e, 0x96, 0x02, ],
         'flashPageWords': 128,
         'flashPagesCount': 256,
         'eepromSize': 2048,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega644': {
+    }, {
+        'id': 'atmega644',
         'name': 'ATmega644',
         'signature': [ 0x1e, 0x96, 0x09, ],
         'flashPageWords': 128,
         'flashPagesCount': 256,
         'eepromSize': 2048,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega644p': {
+    }, {
+        'id': 'atmega644p',
         'name': 'ATmega644P',
         'signature': [ 0x1e, 0x96, 0x0A, ],
         'flashPageWords': 128,
         'flashPagesCount': 256,
         'eepromSize': 2048,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega128': {
+    }, {
+        'id': 'atmega128',
         'name': 'ATmega128',
         'signature': [ 0x1e, 0x97, 0x02, ],
         'flashPageWords': 128,
         'flashPagesCount': 512,
         'eepromSize': 4096,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega1284': {
+    }, {
+        'id' : 'atmega1284',
         'name': 'ATmega128',
         'signature': [ 0x1e, 0x97, 0x06, ],
         'flashPageWords': 128,
         'flashPagesCount': 512,
         'eepromSize': 4096,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
-    },
-    'atmega1284p': {
+    }, {
+        'id' : 'atmega1284p',
         'name': 'ATmega128',
         'signature': [ 0x1e, 0x97, 0x05, ],
         'flashPageWords': 128,
@@ -213,15 +214,15 @@ cpuList = {
         'eepromSize': 4096,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
     },
-}
+]
 
 
 class Dbg:
-    def __init__(self, verbose = 3, graphLength = 50, useColors = True):
-        self.graphLength = graphLength
+    def __init__(self, verbose = 3, gaugeLength = 50, useColors = True):
+        self.gaugeLength = geugeLength
         self.loglevel = verbose
         self.useColors = useColors
-        self.graphStrLen = 0
+        self.geugeStrLen = 0
         self.colors = {
             'gray': '\033[1;90m',
             'red': '\033[1;91m',
@@ -238,19 +239,19 @@ class Dbg:
         self.loglevel = loglevel
     def log(self, message, loglevel = 3, color = None):
         if loglevel < self.loglevel:
-            if self.graphStrLen:
+            if self.geugeStrLen:
                 sys.stderr.write('\n')
-                self.graphStrLen = 0
+                self.geugeStrLen = 0
             if self.useColors and color in self.colors.keys():
                 sys.stderr.write(self.colors[color] + str(message) + self.colors['normal'] + '\n')
             else:
                 sys.stderr.write(str(message) + '\n')
-    def graph(self, percentage, loglevel = 2):
+    def gauge(self, percentage, loglevel = 2):
         if loglevel < self.loglevel:
-            graph = self.graphLength * percentage / 100
-            graphStr = '[%s%s] %3d%%' % ('=' * graph, ' ' * (self.graphLength - graph),  percentage)
-            sys.stderr.write('\b' * self.graphStrLen + graphStr)
-            self.graphStrLen = len(graphStr)
+            gauge = self.gaugeLength * percentage / 100
+            gaugeStr = '[%s%s] %3d%%' % ('=' * gauge, ' ' * (self.gaugeLength - gauge),  percentage)
+            sys.stderr.write('\b' * self.gaugeStrLen + gaugeStr)
+            self.gaugeStrLen = len(gaugeStr)
             sys.stderr.flush()
     def msg(self, message, loglevel = 2, color = 'white'):
         self.log(message, loglevel = loglevel, color = color)
@@ -263,6 +264,14 @@ class Dbg:
 
 dbg = Dbg()
 
+
+def byteSize(val):
+    units = ['B', 'KB', 'MB', 'GB', 'TB',]
+    i = 0
+    while val >= 1024:
+        val /= 1024
+        i += 1
+    return "%d %s" % (val, units[i])
 
 
 def readBytesFromFile(fileName, chunkSize = 64):
@@ -393,16 +402,18 @@ class NotExpectedCpuException(AvrProgException):
 class SerialTerminal:
     def __init__(self, port):
         self.ser = None
-        self.ser = serial.Serial(port, timeout = .5)
+        self.ser = serial.Serial(port, timeout = 1)
 
     def __del__(self):
         if self.ser and self.ser.isOpen():
             self.ser.close()
 
-    def cmdReceive(self):
+    def cmdReceive(self, resultLines = None):
         if not self.ser or not self.ser.isOpen():
             raise NotConnectedException()
         lines = []
+        if resultLines:
+            receivedLines = 0
         while True:
             line = self.ser.readline()
             if line == '':
@@ -412,13 +423,17 @@ class SerialTerminal:
             line = line.strip()
             if line == '':
                 continue
+            if resultLines:
+                if receivedLines < resultLines:
+                    receivedLines += 1
+                    dbg.gauge(100 * receivedLines / resultLines)
             dbg.log("<< " + line, color = 'blue')
             if line == 'ready':
                 return lines
             lines.append(line)
 
 
-    def cmdSend(self, cmd, result = True, disableResultError = False, retry = 2):
+    def cmdSend(self, cmd, result = True, disableResultError = False, retry = 2, resultLines = None):
         if not self.ser or not self.ser.isOpen():
             raise NotConnectedException()
         dbg.log(">> " + cmd, color = 'cyan')
@@ -430,7 +445,7 @@ class SerialTerminal:
             return []
         while retry > 0:
             try:
-                return self.cmdReceive()
+                return self.cmdReceive(resultLines = resultLines)
             except NotRespondingException, e:
                 self.ser.write('\r\n')
                 self.ser.flush()
@@ -466,8 +481,8 @@ class AvrProg:
         self.bufferCrc16 = 0
 
 
-    def cmdSend(self, cmd, resultOk = []):
-        res = self.term.cmdSend(cmd, disableResultError = bool(resultOk))
+    def cmdSend(self, cmd, resultOk = [], resultLines = None):
+        res = self.term.cmdSend(cmd, disableResultError = bool(resultOk), resultLines = resultLines)
         statusOk = False
         error = ""
         for line in res:
@@ -638,7 +653,7 @@ class AvrProg:
             cmd += "%02x" % crc
             self.cmdSend(cmd, ['flash ok'])
             blocksWrited += 1
-            dbg.graph(blocksWrited * 100 / blocksToWrite)
+            dbg.gauge(blocksWrited * 100 / blocksToWrite)
 
 
     def reboot(self):
@@ -672,20 +687,21 @@ class AvrProg:
             if cmd[0] == 'signature':
                 for sig in cmd[1:]:
                     signature.append(int(sig, 16))
-        for cpuId, attr in cpuList.iteritems():
+        for attr in cpuList.iteritems():
             if attr['signature'] == signature:
-                self.deviceCpu = cpuId
+                self.deviceCpu = attr['id']
                 self.flashPageSize = attr['flashPageWords'] * 2
                 self.flashSize = attr['flashPagesCount'] * self.flashPageSize
                 self.eepromSize = attr['eepromSize']
                 self.fuses = attr['fuses']
                 dbg.info("  detected cpu: " + attr['name'])
+                break
         if not self.deviceCpu:
             raise UnknownCpuException(signature)
         dbg.info("  flash size: %d bytes" % (self.flashSize - 4))
         if not cpu or 'auto' in cpu:
             return
-        if cpuId not in cpu:
+        if self.deviceCpu not in cpu:
             raise NotExpectedCpuException(expected = cpu, detected = self.deviceCpu)
 
     def erase(self):
@@ -707,7 +723,7 @@ class AvrProg:
         dbg.msg("verifying flash")
         addrFrom = 0
         addrTo = len(self.buffer) - 1
-        res = self.term.cmdSend('spi flash read %06x %06x' % (addrFrom, addrTo))
+        res = self.term.cmdSend('spi flash read %06x %06x' % (addrFrom, addrTo), resultLines = (addrTo - addrFrom) / 32)
         for line in res:
             cmd = line.split()
             if cmd[0] == 'data':
@@ -746,7 +762,7 @@ class AvrProg:
             addrFrom = int(addresses[0], 16)
             addrTo = int(addresses[1], 16)
         self.buffer = [0xff,] * addrFrom
-        res = self.term.cmdSend('spi flash read %06x %06x' % (addrFrom, addrTo))
+        res = self.term.cmdSend('spi flash read %06x %06x' % (addrFrom, addrTo), resultLines = (addrTo - addrFrom) / 32)
         for line in res:
             cmd = line.split()
             if cmd[0] == 'data':
@@ -798,9 +814,14 @@ class AvrProg:
             for fuseId in self.fuses:
                 print '%5s: 0x%02x' % (fuseId, self.spiFuse(fuseId))
 
+    def printCpuList(self):
+        print "{:<12} {:>8} {:>8}".format('cpu', 'flash', 'eeprom')
+        for attr in cpuList:
+            print "{:<12} {:>8} {:>8}".format(attr['id'], byteSize(2 * attr['flashPageWords'] * attr['flashPagesCount']), byteSize(attr['eepromSize']))
 
+
+avrProg = AvrProg()
 try:
-    avrProg = AvrProg()
     for arg in sys.argv[1:]:
         arg = arg.split(':')
         cmd = arg[0]
@@ -819,11 +840,13 @@ try:
             print "  cpu[:<cpuid>]\n    connect to CPU, and detect it (if cpuid not match, programmer exit with error)"
             print "  erase\n    chip erase, cause erase flash, eeprom and lockbits"
             print "  flash\n    write buffer to flash"
-            print "  flashdump\n    read flash to buffer"
-            print "  flashverify\n    verify flash with buffer"
+            print "  dump\n    read flash to buffer"
+            print "  verify\n    verify flash with buffer"
             print "  fuse[:<fuseid>[:<value>]]\n    read fuse(s) or write fuse. value is in hex"
         elif cmd == 'about':
             print "avrprog %s (c)2012 pavel.revak@gmail.com" % VERSION
+        elif cmd == 'cpulist':
+            avrProg.printCpuList()
         elif cmd == 'verbose':
             dbg.setVerbose(int(arg[0]))
         elif cmd == 'load':
@@ -844,9 +867,9 @@ try:
             avrProg.erase()
         elif cmd =='flash':
             avrProg.flash()
-        elif cmd =='flashdump':
+        elif cmd =='dump':
             avrProg.flashDump(arg[0:])
-        elif cmd =='flashverify':
+        elif cmd =='verify':
             avrProg.flashVerify()
         elif cmd == 'fuse':
             avrProg.fuse(arg[0:])
