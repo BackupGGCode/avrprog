@@ -9,7 +9,7 @@
 # - remove pyserial dependency
 # - add support for all avr
 # - read intel hexfile format
-# - raaf motorola hexfile format
+# - read motorola hexfile format
 # - save buffer
 # - eeprom write
 # - eeprom read
@@ -27,6 +27,7 @@ cpuList = {
         'flashPageWords': 16,
         'flashPagesCount': 32,
         'eepromSize': 64,
+        'fuses': ['fusel', 'fuseh', 'lock', 'cal'],
     },
     'attiny26': {
         'name': 'ATtiny26',
@@ -34,55 +35,7 @@ cpuList = {
         'flashPageWords': 16,
         'flashPagesCount': 64,
         'eepromSize': 128,
-    },
-    'atmega8': {
-        'name': 'ATmega8',
-        'signature': [ 0x1e, 0x93, 0x07, ],
-        'flashPageWords': 32,
-        'flashPagesCount': 128,
-        'eepromSize': 512,
-    },
-    'atmega32': {
-        'name': 'ATmega32',
-        'signature': [ 0x1e, 0x95, 0x02, ],
-        'flashPageWords': 64,
-        'flashPagesCount': 256,
-        'eepromSize': 1024,
-    },
-    'atmega64': {
-        'name': 'ATmega64',
-        'signature': [ 0x1e, 0x96, 0x02, ],
-        'flashPageWords': 128,
-        'flashPagesCount': 256,
-        'eepromSize': 2048,
-    },
-    'atmega128': {
-        'name': 'ATmega128',
-        'signature': [ 0x1e, 0x97, 0x02, ],
-        'flashPageWords': 128,
-        'flashPagesCount': 512,
-        'eepromSize': 4096,
-    },
-    'atmega162': {
-        'name': 'ATmega162',
-        'signature': [ 0x1e, 0x94, 0x04, ],
-        'flashPageWords': 64,
-        'flashPagesCount': 128,
-        'eepromSize': 512,
-    },
-    'atmega644': {
-        'name': 'ATmega644',
-        'signature': [ 0x1e, 0x96, 0x09, ],
-        'flashPageWords': 128,
-        'flashPagesCount': 256,
-        'eepromSize': 2048,
-    },
-    'atmega644p': {
-        'name': 'ATmega644P',
-        'signature': [ 0x1e, 0x96, 0x0A, ],
-        'flashPageWords': 128,
-        'flashPagesCount': 256,
-        'eepromSize': 2048,
+        'fuses': ['fusel', 'fuseh', 'lock', 'cal'],
     },
     'atmega48': {
         'name': 'ATmega48',
@@ -90,6 +43,7 @@ cpuList = {
         'flashPageWords': 32,
         'flashPagesCount': 64,
         'eepromSize': 256,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
     },
     'atmega48p': {
         'name': 'ATmega48p',
@@ -97,6 +51,15 @@ cpuList = {
         'flashPageWords': 32,
         'flashPagesCount': 64,
         'eepromSize': 256,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
+    },
+    'atmega8': {
+        'name': 'ATmega8',
+        'signature': [ 0x1e, 0x93, 0x07, ],
+        'flashPageWords': 32,
+        'flashPagesCount': 128,
+        'eepromSize': 512,
+        'fuses': ['fusel', 'fuseh', 'lock', 'cal'],
     },
     'atmega88': {
         'name': 'ATmega88',
@@ -104,6 +67,7 @@ cpuList = {
         'flashPageWords': 32,
         'flashPagesCount': 128,
         'eepromSize': 512,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
     },
     'atmega88p': {
         'name': 'ATmega88p',
@@ -111,6 +75,39 @@ cpuList = {
         'flashPageWords': 32,
         'flashPagesCount': 128,
         'eepromSize': 512,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
+    },
+    'atmega16': {
+        'name': 'ATmega16',
+        'signature': [ 0x1e, 0x94, 0x03, ],
+        'flashPageWords': 64,
+        'flashPagesCount': 128,
+        'eepromSize': 512,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
+    },
+    'atmega162': {
+        'name': 'ATmega162',
+        'signature': [ 0x1e, 0x94, 0x04, ],
+        'flashPageWords': 64,
+        'flashPagesCount': 128,
+        'eepromSize': 512,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
+    },
+    'atmega164a': {
+        'name': 'ATmega164p',
+        'signature': [ 0x1e, 0x94, 0x0f, ],
+        'flashPageWords': 64,
+        'flashPagesCount': 128,
+        'eepromSize': 512,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
+    },
+    'atmega164p': {
+        'name': 'ATmega164p',
+        'signature': [ 0x1e, 0x94, 0x0a, ],
+        'flashPageWords': 64,
+        'flashPagesCount': 128,
+        'eepromSize': 512,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
     },
     'atmega168': {
         'name': 'ATmega168',
@@ -118,6 +115,7 @@ cpuList = {
         'flashPageWords': 64,
         'flashPagesCount': 128,
         'eepromSize': 512,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
     },
     'atmega168p': {
         'name': 'ATmega168p',
@@ -125,6 +123,39 @@ cpuList = {
         'flashPageWords': 64,
         'flashPagesCount': 128,
         'eepromSize': 512,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
+    },
+    'atmega32': {
+        'name': 'ATmega32',
+        'signature': [ 0x1e, 0x95, 0x02, ],
+        'flashPageWords': 64,
+        'flashPagesCount': 256,
+        'eepromSize': 1024,
+        'fuses': ['fusel', 'fuseh', 'lock', 'cal'],
+    },
+    'atmega324p': {
+        'name': 'ATmega324P',
+        'signature': [ 0x1e, 0x95, 0x08, ],
+        'flashPageWords': 64,
+        'flashPagesCount': 256,
+        'eepromSize': 1024,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
+    },
+    'atmega324a': {
+        'name': 'ATmega324A',
+        'signature': [ 0x1e, 0x95, 0x15, ],
+        'flashPageWords': 64,
+        'flashPagesCount': 256,
+        'eepromSize': 1024,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
+    },
+    'atmega324pa': {
+        'name': 'ATmega324PA',
+        'signature': [ 0x1e, 0x95, 0x11, ],
+        'flashPageWords': 64,
+        'flashPagesCount': 256,
+        'eepromSize': 1024,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
     },
     'atmega328p': {
         'name': 'ATmega328p',
@@ -132,6 +163,55 @@ cpuList = {
         'flashPageWords': 64,
         'flashPagesCount': 256,
         'eepromSize': 1024,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
+    },
+    'atmega64': {
+        'name': 'ATmega64',
+        'signature': [ 0x1e, 0x96, 0x02, ],
+        'flashPageWords': 128,
+        'flashPagesCount': 256,
+        'eepromSize': 2048,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
+    },
+    'atmega644': {
+        'name': 'ATmega644',
+        'signature': [ 0x1e, 0x96, 0x09, ],
+        'flashPageWords': 128,
+        'flashPagesCount': 256,
+        'eepromSize': 2048,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
+    },
+    'atmega644p': {
+        'name': 'ATmega644P',
+        'signature': [ 0x1e, 0x96, 0x0A, ],
+        'flashPageWords': 128,
+        'flashPagesCount': 256,
+        'eepromSize': 2048,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
+    },
+    'atmega128': {
+        'name': 'ATmega128',
+        'signature': [ 0x1e, 0x97, 0x02, ],
+        'flashPageWords': 128,
+        'flashPagesCount': 512,
+        'eepromSize': 4096,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
+    },
+    'atmega1284': {
+        'name': 'ATmega128',
+        'signature': [ 0x1e, 0x97, 0x06, ],
+        'flashPageWords': 128,
+        'flashPagesCount': 512,
+        'eepromSize': 4096,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
+    },
+    'atmega1284p': {
+        'name': 'ATmega128',
+        'signature': [ 0x1e, 0x97, 0x05, ],
+        'flashPageWords': 128,
+        'flashPagesCount': 512,
+        'eepromSize': 4096,
+        'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
     },
 }
 
@@ -259,7 +339,7 @@ class NotEnoughtSpaceException(AvrProgException):
     def __str__(self):
         return "Not enought space in memmory, need %d, but %d Bytes only is free." % (self.bufferSize, self.flashSize)
 
-class BufferIsEmpty(AvrProgException):
+class BufferIsEmptyException(AvrProgException):
     def __init__(self):
         pass
     def __str__(self):
@@ -378,6 +458,8 @@ class AvrProg:
 
         self.flashSize = 0
         self.flashPageSize = 0
+        self.eepromSize = 0
+        self.fuses = []
 
         self.buffer = []
         self.bufferSize = 0
@@ -402,6 +484,7 @@ class AvrProg:
     def connect(self, port):
         dbg.msg("openning port: %s" % port)
         self.term = SerialTerminal(port)
+        self.hello()
 
     def getDeviceName(self):
         return self.deviceName
@@ -428,7 +511,7 @@ class AvrProg:
     def signBuffer(self):
         dbg.msg("signing for bootloader")
         if not len(self.buffer):
-            raise BufferIsEmpty()
+            raise BufferIsEmptyException()
         if not self.isBootloader():
             raise NotInBootloaderException()
         sizeLimit = self.flashSize - 4
@@ -517,7 +600,7 @@ class AvrProg:
     def flash(self):
         dbg.msg("writing flash")
         if not len(self.buffer):
-            raise BufferIsEmpty()
+            raise BufferIsEmptyException()
         if not self.isProgrammingDevice():
             raise NotInBootloaderException()
         addr = 0
@@ -553,7 +636,7 @@ class AvrProg:
                 cmd += "%02x" % byte
                 crc ^= byte
             cmd += "%02x" % crc
-            self.cmdSend(cmd, 'flash ok')
+            self.cmdSend(cmd, ['flash ok'])
             blocksWrited += 1
             dbg.graph(blocksWrited * 100 / blocksToWrite)
 
@@ -594,9 +677,12 @@ class AvrProg:
                 self.deviceCpu = cpuId
                 self.flashPageSize = attr['flashPageWords'] * 2
                 self.flashSize = attr['flashPagesCount'] * self.flashPageSize
+                self.eepromSize = attr['eepromSize']
+                self.fuses = attr['fuses']
                 dbg.info("  detected cpu: " + attr['name'])
         if not self.deviceCpu:
             raise UnknownCpuException(signature)
+        dbg.info("  flash size: %d bytes" % (self.flashSize - 4))
         if not cpu or 'auto' in cpu:
             return
         if cpuId not in cpu:
@@ -617,7 +703,7 @@ class AvrProg:
         if not self.isProgrammer():
             raise NotInProgrammerException()
         if not len(self.buffer):
-            raise BufferIsEmpty()
+            raise BufferIsEmptyException()
         dbg.msg("verifying flash")
         addrFrom = 0
         addrTo = len(self.buffer) - 1
@@ -639,7 +725,7 @@ class AvrProg:
                         byteList.append(byteStr)
                         byteStr = ''
                 if crc8:
-                    AvrProgException('CRC8 error')
+                    raise AvrProgException('CRC8 error')
                 if addrFrom != addr:
                     raise AvrProgException('Returned Wrong address')
                 for byte in byteList[:-1]:
@@ -678,7 +764,7 @@ class AvrProg:
                         byteList.append(byte)
                         byte = ''
                 if crc8:
-                    AvrProgException('CRC8 error')
+                    raise AvrProgException('CRC8 error')
                 self.buffer += byteList[:-1]
 
     def spiFuse(self, fuseId, val = None):
@@ -688,16 +774,29 @@ class AvrProg:
             if cmd[0] == fuseId:
                 return int(cmd[1], 16)
 
-    def fuse(self, fuseId = None, val = None):
-        if not fuseId:
-            for fuseId in ('fusel', 'fuseh', 'fusee', 'lock', 'cal'):
+    def fuse(self, params):
+        if len(params) > 0:
+            # first param is fuseId
+            fuseId = params[0]
+            # test if fuseId is correct
+            if fuseId not in self.fuses:
+                raise AvrProgException('Wrong fuse: %s' % fuseId)
+            if len(params) > 1:
+                # second param can by hex number for set fuse
+                val = int(params[1], 16)
+                # we can set only these fuses..
+                if fuseId not in ('fusel', 'fuseh', 'fusee', 'lock'):
+                    raise AvrProgException('Can not write fuse: %s' % fuseId)
+                # store fuse and test if fuse is stored correctly
+                if val != self.spiFuse(fuseId, val):
+                    raise AvrProgException('Error setting fuse: %s to %02x' % (fuseId, val))
+            else:
+                # print the fuse
                 print '%5s: 0x%02x' % (fuseId, self.spiFuse(fuseId))
-        elif not val and fuseId in  ('fusel', 'fuseh', 'fusee', 'lock', 'cal'):
-            print '%5s: 0x%02x' % (fuseId, self.spiFuse(fuseId))
-        elif val and fuseId in ('fusel', 'fuseh', 'fusee', 'lock'):
-            val = int(val[0], 16)
-            if val != self.spiFuse(fuseId, val):
-                AvrProgException('Error setting %s to %02x' % (fuseId, val))
+        else:
+            # read and print all cnown fuses
+            for fuseId in self.fuses:
+                print '%5s: 0x%02x' % (fuseId, self.spiFuse(fuseId))
 
 
 try:
@@ -717,7 +816,12 @@ try:
             print "  bootloader\n    try to start bootloader"
             print "  reboot\n    reboot device"
             print "  sign\n    sign content of buffer (use this for flashing from bootloader)"
+            print "  cpu[:<cpuid>]\n    connect to CPU, and detect it (if cpuid not match, programmer exit with error)"
+            print "  erase\n    chip erase, cause erase flash, eeprom and lockbits"
             print "  flash\n    write buffer to flash"
+            print "  flashdump\n    read flash to buffer"
+            print "  flashverify\n    verify flash with buffer"
+            print "  fuse[:<fuseid>[:<value>]]\n    read fuse(s) or write fuse. value is in hex"
         elif cmd == 'about':
             print "avrprog %s (c)2012 pavel.revak@gmail.com" % VERSION
         elif cmd == 'verbose':
@@ -728,31 +832,24 @@ try:
             avrProg.printBuffer()
         elif cmd =='port':
             avrProg.connect(arg[0])
-            avrProg.hello()
         elif cmd =='bootloader':
             avrProg.startBootloader()
         elif cmd =='reboot':
             avrProg.reboot()
-        elif cmd =='cpu':
-            avrProg.setCpu(arg[0:])
         elif cmd =='sign':
             avrProg.signBuffer()
+        elif cmd =='cpu':
+            avrProg.setCpu(arg[0:])
+        elif cmd =='erase':
+            avrProg.erase()
         elif cmd =='flash':
             avrProg.flash()
         elif cmd =='flashdump':
             avrProg.flashDump(arg[0:])
         elif cmd =='flashverify':
             avrProg.flashVerify()
-        elif cmd =='erase':
-            avrProg.erase()
-        elif cmd == 'fuses':
-            avrProg.fuse()
-        elif cmd == 'fusel':
-            avrProg.fuse('fusel', arg[0:])
-        elif cmd == 'fuseh':
-            avrProg.fuse('fuseh', arg[0:])
-        elif cmd == 'fusee':
-            avrProg.fuse('fusee', arg[0:])
+        elif cmd == 'fuse':
+            avrProg.fuse(arg[0:])
         else:
             raise UnknownCommandException(cmd)
     if avrProg.isProgrammer() and avrProg.deviceCpu:
