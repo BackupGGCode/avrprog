@@ -219,10 +219,10 @@ cpuList = [
 
 class Dbg:
     def __init__(self, verbose = 3, gaugeLength = 50, useColors = True):
-        self.gaugeLength = geugeLength
+        self.gaugeLength = gaugeLength
         self.loglevel = verbose
         self.useColors = useColors
-        self.geugeStrLen = 0
+        self.gaugeStrLen = 0
         self.colors = {
             'gray': '\033[1;90m',
             'red': '\033[1;91m',
@@ -239,9 +239,9 @@ class Dbg:
         self.loglevel = loglevel
     def log(self, message, loglevel = 3, color = None):
         if loglevel < self.loglevel:
-            if self.geugeStrLen:
+            if self.gaugeStrLen:
                 sys.stderr.write('\n')
-                self.geugeStrLen = 0
+                self.gaugeStrLen = 0
             if self.useColors and color in self.colors.keys():
                 sys.stderr.write(self.colors[color] + str(message) + self.colors['normal'] + '\n')
             else:
@@ -516,7 +516,7 @@ class AvrProg:
     def isProgrammingDevice(self):
         return self.deviceName in ('avrprog', 'avrboot')
 
-    def readFile(self, fileName):
+    def readFile(self, fileName = ""):
         dbg.msg("loading file: %s" % fileName)
         for byte in readBytesFromFile(fileName):
             self.buffer.append(byte)
