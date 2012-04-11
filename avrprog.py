@@ -267,7 +267,7 @@ dbg = Dbg()
 
 def byteSize(val, mult = 1024, maxMult = 1, prefix = ' ', sufix = 'Bytes', units = ['', 'K', 'M', 'G', 'T',]):
     i = 0
-    while val >= max and i < len(units) - 1:
+    while val >= maxMult and i < len(units) - 1:
         val /= mult
         i += 1
     return "%d%s%s%s" % (val, prefix, units[i], sufix)
