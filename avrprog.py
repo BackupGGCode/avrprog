@@ -13,7 +13,7 @@
 # - save buffer
 # - eeprom write
 # - eeprom read
-# - buffer save
+# - eeprom save
 
 import sys
 import serial
@@ -265,23 +265,67 @@ class Dbg:
 dbg = Dbg()
 
 
-def byteSize(val):
-    units = ['B', 'KB', 'MB', 'GB', 'TB',]
+def byteSize(val, mult = 1024, maxMult = 1, prefix = ' ', sufix = 'Bytes', units = ['', 'K', 'M', 'G', 'T',]):
     i = 0
-    while val >= 1024:
-        val /= 1024
+    while val >= max and i < len(units) - 1:
+        val /= mult
         i += 1
-    return "%d %s" % (val, units[i])
+    return "%d%s%s%s" % (val, prefix, units[i], sufix)
 
 
 def readBytesFromFile(fileName, chunkSize = 64):
-    with open(fileName, 'rb') as f:
+    with open(fileName, 'rb') as binaryFile:
         while True:
-            chunk = f.read(chunkSize)
+            chunk = binaryFile.read(chunkSize)
             if not chunk:
                 break
             for byte in bytearray(chunk):
                 yield byte
+
+
+class SrecException(Exception):
+    def __init__(self, msg = "SrecException."):
+        self.msg = msg
+    def __str__(self):
+        return self.msg
+
+
+def readBytesFromSrecFile(fileName, dataBuffer = []):
+    with open(fileName) as srecFile:
+        loadSize = 0
+        startAddr = 0
+        for srec in srecFile:
+            # Strip some file content
+            srec = srec.strip('\n').strip('\r')
+            if not srec.startswith('S'):
+                raise SrecException('this is not an motorola srec file')
+            record = int(srec[1:2])
+            bytesCount = int(srec[2:4], 16)
+            if bytesCount * 2 + 4 != len(srec):
+                raise SrecException('wrong srec line length')
+            checkSum = 0x00
+            for i in xrange(2, bytesCount * 2 + 4, 2):
+                checkSum = (checkSum + int(srec[i:i + 2], 16)) & 0xff
+            if checkSum != 0xff:
+                raise SrecException('wrong srec checksum')
+            addrLen = [2, 2, 3, 4, 0, 2, 0, 4, 3, 2, ][record]
+            if addrLen == 0:
+                raise SrecException('unknown record: ' + record)
+            addr = int(srec[4:(4 + addrLen * 2)], 16)
+            bytes = []
+            for i in xrange(4 + addrLen * 2, bytesCount * 2 + 2, 2):
+                bytes.append(int(srec[i:i + 2], 16))
+            if record == 0:
+                dbg.info('  srec header: ' + str(bytearray(bytes)), loglevel = 3)
+            elif record in (1, 2, 3):
+                if startAddr == 0:
+                    startAddr = addr
+                if len(dataBuffer) < addr:
+                    dataBuffer += [0xff] * (addr - len(dataBuffer))
+                dataBuffer[addr:addr + len(bytes)] = bytes
+            loadSize += len(bytes)
+        dbg.info('  loaded from address: 0x%06x: %s' % (startAddr, byteSize(loadSize, maxMult = 10)))
+    return dataBuffer
 
 
 def crc16_update(crc, val, poly = 0xa001):
@@ -476,7 +520,7 @@ class AvrProg:
         self.eepromSize = 0
         self.fuses = []
 
-        self.buffer = []
+        self.dataBuffer = []
         self.bufferSize = 0
         self.bufferCrc16 = 0
 
@@ -518,23 +562,32 @@ class AvrProg:
 
     def readFile(self, fileName = ""):
         dbg.msg("loading file: %s" % fileName)
-        for byte in readBytesFromFile(fileName):
-            self.buffer.append(byte)
-            self.bufferSize += 1
-            self.bufferCrc16 = crc16_update(self.bufferCrc16, byte)
+        if fileName.endswith('.srec'):
+            readBytesFromSrecFile(fileName, self.dataBuffer)
+        if fileName.endswith('.hex'):
+            raise AvrProgException('Intel hex file is not supported yet, use motorola srec file instead or binary')
+        else:
+            dataBufer = []
+            for byte in readBytesFromFile(fileName):
+                self.dataBuffer.append(byte)
+                self.bufferSize += 1
+                self.bufferCrc16 = crc16_update(self.bufferCrc16, byte)
+
+    def clearBuffer(self):
+        dataBuffer = []
 
     def signBuffer(self):
         dbg.msg("signing for bootloader")
-        if not len(self.buffer):
+        if not len(self.dataBuffer):
             raise BufferIsEmptyException()
         if not self.isBootloader():
             raise NotInBootloaderException()
         sizeLimit = self.flashSize - 4
         if self.bufferSize > sizeLimit:
             raise NotEnoughtSpaceException(bufferSize = self.bufferSize, flashSize = sizeLimit)
-        self.buffer += [0xff] * (sizeLimit - self.bufferSize)
-        self.buffer += [self.bufferSize & 0xff, (self.bufferSize >> 8) & 0xff]
-        self.buffer += [self.bufferCrc16 & 0xff, (self.bufferCrc16 >> 8) & 0xff]
+        self.dataBuffer += [0xff] * (sizeLimit - self.bufferSize)
+        self.dataBuffer += [self.bufferSize & 0xff, (self.bufferSize >> 8) & 0xff]
+        self.dataBuffer += [self.bufferCrc16 & 0xff, (self.bufferCrc16 >> 8) & 0xff]
 
     def printHexLine(self, addr, data):
         if not data:
@@ -559,7 +612,7 @@ class AvrProg:
         previousLineAddr = addr
         previousLineData = []
         repeat = False
-        for byte in self.buffer:
+        for byte in self.dataBuffer:
             lineData.append(byte)
             addr += 1
             if addr % 16 == 0:
@@ -614,14 +667,14 @@ class AvrProg:
 
     def flash(self):
         dbg.msg("writing flash")
-        if not len(self.buffer):
+        if not len(self.dataBuffer):
             raise BufferIsEmptyException()
         if not self.isProgrammingDevice():
             raise NotInBootloaderException()
         addr = 0
         flashBlock = False
         blocks = []
-        for byte in self.buffer:
+        for byte in self.dataBuffer:
             if addr % self.flashPageSize == 0:
                 block = {
                     'addr': addr,
@@ -677,6 +730,7 @@ class AvrProg:
             raise AvrProgException("Can not start bootloader.")
 
     def setCpu(self, cpu):
+        dbg.msg("detecting CPU")
         if not self.isProgrammer():
             raise NotInProgrammerException()
         self.deviceCpu = ''
@@ -687,7 +741,7 @@ class AvrProg:
             if cmd[0] == 'signature':
                 for sig in cmd[1:]:
                     signature.append(int(sig, 16))
-        for attr in cpuList.iteritems():
+        for attr in cpuList:
             if attr['signature'] == signature:
                 self.deviceCpu = attr['id']
                 self.flashPageSize = attr['flashPageWords'] * 2
@@ -718,11 +772,11 @@ class AvrProg:
     def flashVerify(self):
         if not self.isProgrammer():
             raise NotInProgrammerException()
-        if not len(self.buffer):
+        if not len(self.dataBuffer):
             raise BufferIsEmptyException()
         dbg.msg("verifying flash")
         addrFrom = 0
-        addrTo = len(self.buffer) - 1
+        addrTo = len(self.dataBuffer) - 1
         res = self.term.cmdSend('spi flash read %06x %06x' % (addrFrom, addrTo), resultLines = (addrTo - addrFrom) / 32)
         for line in res:
             cmd = line.split()
@@ -745,8 +799,8 @@ class AvrProg:
                 if addrFrom != addr:
                     raise AvrProgException('Returned Wrong address')
                 for byte in byteList[:-1]:
-                    if self.buffer[addrFrom] != byte:
-                        raise AvrProgException('Verify error, addr: %06x buffer: %02x flash: %02x' % (addrFrom, self.buffer[addrFrom], byte))
+                    if self.dataBuffer[addrFrom] != byte:
+                        raise AvrProgException('Verify error, addr: %06x dataBuffer: %02x flash: %02x' % (addrFrom, self.dataBuffer[addrFrom], byte))
                     addrFrom += 1
 
 
@@ -761,7 +815,7 @@ class AvrProg:
         elif len(addresses) > 1:
             addrFrom = int(addresses[0], 16)
             addrTo = int(addresses[1], 16)
-        self.buffer = [0xff,] * addrFrom
+        self.dataBuffer = [0xff,] * addrFrom
         res = self.term.cmdSend('spi flash read %06x %06x' % (addrFrom, addrTo), resultLines = (addrTo - addrFrom) / 32)
         for line in res:
             cmd = line.split()
@@ -781,7 +835,7 @@ class AvrProg:
                         byte = ''
                 if crc8:
                     raise AvrProgException('CRC8 error')
-                self.buffer += byteList[:-1]
+                self.dataBuffer += byteList[:-1]
 
     def spiFuse(self, fuseId, val = None):
         res = self.term.cmdSend('spi ' + fuseId + ((' %02x' % val) if val else ''))
@@ -815,9 +869,9 @@ class AvrProg:
                 print '%5s: 0x%02x' % (fuseId, self.spiFuse(fuseId))
 
     def printCpuList(self):
-        print "{:<12} {:>8} {:>8}".format('cpu', 'flash', 'eeprom')
+        print "{:^12} {:^12} {:^12}".format('cpu', 'flash', 'eeprom')
         for attr in cpuList:
-            print "{:<12} {:>8} {:>8}".format(attr['id'], byteSize(2 * attr['flashPageWords'] * attr['flashPagesCount']), byteSize(attr['eepromSize']))
+            print "{:<12} {:>12} {:>12}".format(attr['id'], byteSize(2 * attr['flashPageWords'] * attr['flashPagesCount']), byteSize(attr['eepromSize']))
 
 
 avrProg = AvrProg()
@@ -831,6 +885,7 @@ try:
             print "commands:"
             print "  help\n    print this help"
             print "  verbose:<loglevel>\n    set loglevel (0 == no output, 4 = print everything)"
+            print "  clear\n    clear buffer"
             print "  load:<file>\n    load file in to buffer"
             print "  buffer\n    print content of buffer"
             print "  port:<serialport>\n    connect to serial port"
@@ -849,6 +904,8 @@ try:
             avrProg.printCpuList()
         elif cmd == 'verbose':
             dbg.setVerbose(int(arg[0]))
+        elif cmd == 'clear':
+            avrProg.clear()
         elif cmd == 'load':
             avrProg.readFile(arg[0])
         elif cmd == 'buffer':
