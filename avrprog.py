@@ -564,7 +564,7 @@ class AvrProg:
         dbg.msg("loading file: %s" % fileName)
         if fileName.endswith('.srec'):
             readBytesFromSrecFile(fileName, self.dataBuffer)
-        if fileName.endswith('.hex'):
+        elif fileName.endswith('.hex'):
             raise AvrProgException('Intel hex file is not supported yet, use motorola srec file instead or binary')
         else:
             dataBufer = []
@@ -601,7 +601,7 @@ class AvrProg:
             count += 1
             line += ' %02x' % byte
             ascii += ('%c' % byte) if 0x20 <= byte < 0x7f else '.'
-        print line + '   ' * (16 - count) + (' ' if (count < 8) else '')  + ascii + ' ' * (16 - count) + '|'
+        print line + '   ' * (16 - count) + (' ' if (count <= 8) else '')  + ascii + ' ' * (16 - count) + '|'
 
 
     def printBuffer(self):
@@ -905,7 +905,7 @@ try:
         elif cmd == 'verbose':
             dbg.setVerbose(int(arg[0]))
         elif cmd == 'clear':
-            avrProg.clear()
+            avrProg.clearBuffer()
         elif cmd == 'load':
             avrProg.readFile(arg[0])
         elif cmd == 'buffer':

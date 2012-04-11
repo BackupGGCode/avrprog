@@ -7,6 +7,10 @@ PG = python avrprog.py
 PORT = /dev/tty.avrprog
 PGFLAGS += port:$(PORT)
 
-upload: $(BIN)
-	@echo "  PG    " $(BIN) "..."
-	@$(PG) $(PGFLAGS) bootloader load:$(BIN) sign flash reboot
+upload: $(SREC)
+	@echo "  PG    " $(SREC) "..."
+	@$(PG) $(PGFLAGS) bootloader load:$(SREC) sign flash reboot
+
+flash: $(SREC)
+	@echo "  PG    " $(SREC) "..."
+	@$(PG) $(PGFLAGS) cpu load:$(SREC) erase fuse:fusel:$(FUSEL) fuse:fuseh:$(FUSEH) flash verify

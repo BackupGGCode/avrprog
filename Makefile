@@ -12,3 +12,6 @@ clean:
 
 avrprog_upload:
 	make -f avrprog.mk upload
+
+avrboot_flash:
+	make -f avrboot.mk flash

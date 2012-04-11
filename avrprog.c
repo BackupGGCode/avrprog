@@ -8,6 +8,7 @@
 /* TODO:
  * - eeprom write
  * - eeprom read
+ * - extended adresses support (mega256)
  */
 
 #include <util/delay.h>
@@ -42,18 +43,18 @@ NO CARRIER 0 ERROR 0
 #define CPU "atmega8"
 #define COPYRIGHT "(c)2012 pavel.revak@gmail.com"
 
-#define PG_MAFIC 0x4321
+#define PG_MAGIC 0x4321
 
 char programPage(uint16_t page, uint16_t *buf, uint16_t magic) __attribute__ ((section (".progpg")));
 
 char programPage(uint16_t page, uint16_t *buf, uint16_t magic) {
-	uint16_t i;
-	if (magic != PG_MAFIC) return 1;
-	if (page >= 0x1f80) return 1;
+	if (magic != PG_MAGIC) return 1;
+	if (page >= PROGPG_ADDRESS) return 1;
 	boot_spm_interrupt_disable();
 	eeprom_busy_wait();
 	boot_page_erase(page);
 	boot_spm_busy_wait();
+	uint16_t i;
 	for (i = 0; i < SPM_PAGESIZE; i += 2) {
 		boot_page_fill(page + i, *buf++);
 	}

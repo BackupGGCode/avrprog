@@ -34,13 +34,13 @@ NO CARRIER 0 ERROR 0
 #define VERSION "v1.0"
 #define COPYRIGHT "2012 pavel.revak@gmail.com"
 
-#define PG_MAFIC 0x4321
+#define PG_MAGIC 0x4321
 
 char programPage(uint16_t page, uint16_t *buf, uint16_t magic) __attribute__ ((section (".progpg")));
 
 char programPage(uint16_t page, uint16_t *buf, uint16_t magic) {
-	if (magic != PG_MAFIC) return 1;
-	if (page >= 0x1f80) return 1;
+	if (magic != PG_MAGIC) return 1;
+	if (page >= PROGPG_ADDRESS) return 1;
 	boot_spm_interrupt_disable();
 	eeprom_busy_wait();
 	boot_page_erase(page);

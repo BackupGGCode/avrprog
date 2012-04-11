@@ -38,7 +38,7 @@ ifdef MPART
 endif
 
 
-CCFLAGS += $(CPUFLAGS) -std=c99 -gstabs -c -D F_CPU=$(F_CPU) -I. -fshort-enums
+CCFLAGS += $(CPUFLAGS) -std=c99 -gstabs -c -D F_CPU=$(F_CPU) -D CPU=\"$(MMCU)\" -I. -fshort-enums
 LNFLAGS += $(CPUFLAGS) -Wl,--cref
 OCFLAGS += -j .text -j .data
 ODFLAGS += -S -w -a -f -d
