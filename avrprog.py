@@ -267,7 +267,7 @@ dbg = Dbg()
 
 def byteSize(val, mult = 1024, maxMult = 1, prefix = ' ', sufix = 'Bytes', units = ['', 'K', 'M', 'G', 'T',]):
     i = 0
-    while val >= maxMult and i < len(units) - 1:
+    while val >= (maxMult * mult) and i < len(units) - 1:
         val /= mult
         i += 1
     return "%d%s%s%s" % (val, prefix, units[i], sufix)
@@ -390,7 +390,7 @@ class NotEnoughtSpaceException(AvrProgException):
         self.bufferSize = bufferSize
         self.flashSize = flashSize
     def __str__(self):
-        return "Not enought space in memmory, need %d, but %d Bytes only is free." % (self.bufferSize, self.flashSize)
+        return "Not enought space in memmory, need %s, but %s only is free." % (byteSize(self.bufferSize), byteSize(self.flashSize))
 
 class BufferIsEmptyException(AvrProgException):
     def __init__(self):
@@ -662,7 +662,7 @@ class AvrProg:
         if self.deviceCpu:
             dbg.info("  cpu: %s" % self.deviceCpu)
         if self.isBootloader():
-            dbg.info("  space: %d bytes" % (self.flashSize - 4))
+            dbg.info("  space: %s" % byteSize(self.flashSize - 4))
             dbg.info("  app: %s" % self.deviceCrcStatus)
 
     def flash(self):
@@ -752,7 +752,7 @@ class AvrProg:
                 break
         if not self.deviceCpu:
             raise UnknownCpuException(signature)
-        dbg.info("  flash size: %d bytes" % (self.flashSize - 4))
+        dbg.info("  flash size: %s" % byteSize(self.flashSize - 4))
         if not cpu or 'auto' in cpu:
             return
         if self.deviceCpu not in cpu:
