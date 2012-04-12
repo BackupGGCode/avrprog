@@ -1,17 +1,30 @@
 all: avrboot avrprog
 
 avrboot:
-	make -f avrboot.mk all
+	@echo "  MAKE   "$@
+	@make -f avrboot.mk all
 
 avrprog:
-	make -f avrprog.mk all
+	@echo "  MAKE   "$@
+	@make -f avrprog.mk all
 
 clean:
-	make -f avrboot.mk $@
-	make -f avrprog.mk $@
+	@echo "  MAKE   "$@
+	@make -f avrboot.mk $@
+	@make -f avrprog.mk $@
 
 avrprog_upload:
-	make -f avrprog.mk upload
+	@echo "  MAKE   "$@
+	@make -f avrprog.mk upload
 
 avrboot_flash:
-	make -f avrboot.mk flash
+	@echo "  MAKE   "$@
+	@make -f avrboot.mk flash
+
+fuses:
+	@echo "  MAKE   "$@
+	@make -f pg.mk fuses
+
+dump:
+	@echo "  MAKE   "$@
+	@make -f pg.mk dump

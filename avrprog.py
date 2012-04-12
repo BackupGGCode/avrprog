@@ -9,7 +9,6 @@
 # - remove pyserial dependency
 # - add support for all avr
 # - read intel hexfile format
-# - read motorola hexfile format
 # - save buffer
 # - eeprom write
 # - eeprom read
@@ -420,12 +419,13 @@ class UnknownCpuException(AvrProgException):
     def __init__(self, signature = []):
         self.signature = signature
     def __str__(self):
-        msg = 'Unknown CPU'
         if self.signature:
-            msg += ' with signature:'
+            msg = 'UnknownCPU with signature:'
             for byte in self.signature:
                 msg += ' 0x%02x' % byte
-        msg += '.'
+            msg += '.'
+        else:
+            msg = 'Error detecting CPU.'
         return msg
 
 class NotExpectedCpuException(AvrProgException):

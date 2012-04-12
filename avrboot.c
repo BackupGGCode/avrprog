@@ -14,6 +14,7 @@
 #include <avr/pgmspace.h>
 
 #include "drv/uart.h"
+#include "drv/selfpg.h"
 
 /*
 ** bluetooth module send this after init and never answer on this!!!:
@@ -33,27 +34,6 @@ NO CARRIER 0 ERROR 0
 #define NAME "avrboot"
 #define VERSION "v1.0"
 #define COPYRIGHT "2012 pavel.revak@gmail.com"
-
-#define PG_MAGIC 0x4321
-
-char programPage(uint16_t page, uint16_t *buf, uint16_t magic) __attribute__ ((section (".progpg")));
-
-char programPage(uint16_t page, uint16_t *buf, uint16_t magic) {
-	if (magic != PG_MAGIC) return 1;
-	if (page >= PROGPG_ADDRESS) return 1;
-	boot_spm_interrupt_disable();
-	eeprom_busy_wait();
-	boot_page_erase(page);
-	boot_spm_busy_wait();
-	uint16_t i;
-	for (i = 0; i < SPM_PAGESIZE; i += 2) {
-		boot_page_fill(page + i, *buf++);
-	}
-	boot_page_write(page);
-	boot_spm_busy_wait();
-	boot_rww_enable();
-	return 0;
-}
 
 static uint16_t crc16_update(uint16_t crc, uint8_t a) {
 	uint8_t i;

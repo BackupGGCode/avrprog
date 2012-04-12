@@ -105,7 +105,7 @@ dump:	$(ELF)
 	$(V)$(OD) $(ODFLAGS) $<
 
 meminfo:	$(ELF)
-	@echo "  SZ    " $(NAME) "..."
+	@echo "  SIZE  " $(NAME) "..."
 	$(V)$(SZ) $(SZFLAGS) $(OBJ) $<
 
 clean:

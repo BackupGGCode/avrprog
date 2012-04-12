@@ -1,18 +1,40 @@
-FUSEL ?= 0x9f
-FUSEH ?= 0x81
-FUSEE ?= 0xff
-LOCK ?= 0xff
+PG ?= python avrprog.py
+PORT ?= /dev/tty.avrprog
 
-PG = python avrprog.py
-PORT = /dev/tty.avrprog
-PGFLAGS += port:$(PORT)
+PGFLAGS = port:$(PORT)
+
+#FUSEL = 0x9f
+#FUSEH = 0x81
+#FUSEE = 0xff
+#LOCK = 0xff
 
 FUSES =
+ifdef FUSEL
+	FUSES += fuse:fusel:$(FUSEL)
+endif
+ifdef FUSEH
+	FUSES += fuse:fuseh:$(FUSEH)
+endif
+ifdef FUSEE
+	FUSES += fuse:fuseh:$(FUSEE)
+endif
+FUSE_LOCK =
+ifdef LOCK
+	FUSE_LOCK = fuse:lock:$(LOCK)
+endif
 
 upload: $(SREC)
-	@echo "  PG    " $(SREC) "..."
-	@$(PG) $(PGFLAGS) bootloader load:$(SREC) sign flash reboot
+	@echo "  UPLOAD "$<
+	@$(PG) $(PGFLAGS) bootloader load:$< sign flash reboot
 
 flash: $(SREC)
-	@echo "  PG    " $(SREC) "..."
-	@$(PG) $(PGFLAGS) cpu load:$(SREC) erase fuse:fusel:$(FUSEL) fuse:fuseh:$(FUSEH) flash verify
+	@echo "  FLASH  "$<
+	$(PG) $(PGFLAGS) cpu load:$< erase $(FUSES) flash verify $(FUSE_LOCK)
+
+fuses:
+	@echo "  FUSES"
+	$(PG) $(PGFLAGS) cpu fuse
+
+dump:
+	@echo "  DUMP"
+	$(PG) $(PGFLAGS) cpu dump buffer

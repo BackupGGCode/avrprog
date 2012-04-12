@@ -1,6 +1,6 @@
 NAME = avrboot
-MMCU = atmega8
-SRC = avrboot.c drv/uart.c
+MMCU ?= atmega8
+SRC = avrboot.c drv/uart.c drv/selfpg.c
 BOOT_ADDRESS = 0x1800
 PROGPG_ADDRESS = 0x1f80
 F_CPU = 7372800
@@ -10,7 +10,7 @@ OCFLAGS = -j .progpg
 CROSS_COMPILE = avr-
 
 FUSEL = 0x2f
-FUSEH = 0x91
+FUSEH = 0x90
 #FUSEE = 0xff
 #LOCK = 0xff
 
