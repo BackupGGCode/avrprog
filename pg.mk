@@ -35,6 +35,6 @@ fuses:
 	@echo "  FUSES"
 	$(PG) $(PGFLAGS) cpu fuse
 
-dump:
+dump_flash:
 	@echo "  DUMP"
 	$(PG) $(PGFLAGS) cpu dump buffer

@@ -25,6 +25,6 @@ fuses:
 	@echo "  MAKE   "$@
 	@make -f pg.mk fuses
 
-dump:
+dump_flash:
 	@echo "  MAKE   "$@
-	@make -f pg.mk dump
+	@make -f pg.mk dump_flash
