@@ -293,7 +293,7 @@ class SrecException(Exception):
 def readBytesFromSrecFile(fileName, dataBuffer = []):
     with open(fileName) as srecFile:
         loadSize = 0
-        startAddr = 0
+        startAddr = None
         for srec in srecFile:
             # Strip some file content
             srec = srec.strip('\n').strip('\r')
@@ -318,7 +318,7 @@ def readBytesFromSrecFile(fileName, dataBuffer = []):
             if record == 0:
                 dbg.info('  srec header: ' + str(bytearray(bytes)), loglevel = 3)
             elif record in (1, 2, 3):
-                if startAddr == 0:
+                if startAddr is None:
                     startAddr = addr
                 if len(dataBuffer) < addr:
                     dataBuffer += [0xff] * (addr - len(dataBuffer))
@@ -521,8 +521,6 @@ class AvrProg:
         self.fuses = []
 
         self.dataBuffer = []
-        self.bufferSize = 0
-        self.bufferCrc16 = 0
 
 
     def cmdSend(self, cmd, resultOk = [], resultLines = None):
@@ -570,8 +568,6 @@ class AvrProg:
             dataBufer = []
             for byte in readBytesFromFile(fileName):
                 self.dataBuffer.append(byte)
-                self.bufferSize += 1
-                self.bufferCrc16 = crc16_update(self.bufferCrc16, byte)
 
     def clearBuffer(self):
         dataBuffer = []
@@ -583,11 +579,15 @@ class AvrProg:
         if not self.isBootloader():
             raise NotInBootloaderException()
         sizeLimit = self.flashSize - 4
-        if self.bufferSize > sizeLimit:
-            raise NotEnoughtSpaceException(bufferSize = self.bufferSize, flashSize = sizeLimit)
-        self.dataBuffer += [0xff] * (sizeLimit - self.bufferSize)
-        self.dataBuffer += [self.bufferSize & 0xff, (self.bufferSize >> 8) & 0xff]
-        self.dataBuffer += [self.bufferCrc16 & 0xff, (self.bufferCrc16 >> 8) & 0xff]
+        bufferSize = len(self.dataBuffer)
+        if bufferSize > sizeLimit:
+            raise NotEnoughtSpaceException(bufferSize = bufferSize, flashSize = sizeLimit)
+        bufferCrc16 = 0
+        for byte in self.dataBuffer:
+            bufferCrc16 = crc16_update(bufferCrc16, byte)
+        self.dataBuffer += [0xff] * (sizeLimit - bufferSize)
+        self.dataBuffer += [bufferSize & 0xff, (bufferSize >> 8) & 0xff]
+        self.dataBuffer += [bufferCrc16 & 0xff, (bufferCrc16 >> 8) & 0xff]
 
     def printHexLine(self, addr, data):
         if not data:
@@ -662,7 +662,7 @@ class AvrProg:
         if self.deviceCpu:
             dbg.info("  cpu: %s" % self.deviceCpu)
         if self.isBootloader():
-            dbg.info("  space: %s" % byteSize(self.flashSize - 4))
+            dbg.info("  space: %s" % byteSize(self.flashSize - 4, maxMult = 100))
             dbg.info("  app: %s" % self.deviceCrcStatus)
 
     def flash(self):
