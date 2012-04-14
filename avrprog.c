@@ -1,6 +1,6 @@
 /* name:    AVR programmer
  * desc:    SPI programmer for Atmel AVR CPU
- * arch:    AVR CPU, optimized for ATmega8
+ * arch:    AVR CPU
  * author:  (c)2012 Pavel Revak <pavel.revak@gmail.com>
  * licence: GPL
  */
@@ -9,9 +9,10 @@
  * - eeprom write
  * - eeprom read
  * - extended adresses support (mega256)
+ * - configurable spi speed
+ * - rewrite this for stdio
  */
 
-#include <util/delay.h>
 #include <avr/io.h>
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
@@ -19,7 +20,9 @@
 #include <avr/wdt.h>
 #include <avr/boot.h>
 #include <avr/pgmspace.h>
+#include <util/delay.h>
 
+#include "lib/cpudefs.h"
 #include "drv/uart.h"
 #include "drv/spiprog.h"
 #include "drv/selfpg.h"
@@ -41,7 +44,6 @@ NO CARRIER 0 ERROR 0
 
 #define NAME "avrprog"
 #define VERSION "v1.0"
-#define CPU "atmega8"
 #define COPYRIGHT "(c)2012 pavel.revak@gmail.com"
 
 static unsigned char avrCmd(unsigned char data1, unsigned char data2, unsigned char data3, unsigned char data4) {
@@ -376,23 +378,14 @@ void readCommand(char **cmd, char count) {
 		}
 	} else if (ready && compareString(PSTR("bootloader"), cmd[0])) {
 		cli();
-		// DISABLE TWI
-		TWAR = 0x00;
-		TWCR = 0x00;
-		// DISABLE COUNTER
-		TCCR0 = 0x00;
-		TCCR1A = 0x00;
-		TCCR1B = 0x00;
-		TCCR2 = 0x00;
-		TIMSK = 0x00;
 		// DISABLE SERIAL
-		UBRRH = 0x00;
-		UBRRL = 0x00;
-		UCSRA = 0x00;
-		UCSRB = 0x00;
-		UCSRC = 0x00;
+		setUBRRH(0x00);
+		setUBRRL(0x00);
+		setUCSRA(0x00);
+		setUCSRB(0x00);
+		setUCSRC(0x00);
 		// SET PUD (to stay in bootloader)
-		SFIOR = _BV(PUD);
+		setPUD();
 
 		wdt_enable(WDTO_2S);
 		wdt_reset();
@@ -450,7 +443,7 @@ int main( void ) {
 	uartOpen(115200UL);
 	spiprogInit();
 
-	SFIOR &= ~ _BV(PUD);
+	setPUD();
 
 	sei();
 

@@ -1,18 +1,19 @@
 /* name:    AVR bootloader
  * desc:    bootloader for Atmel AVR CPU
- * arch:    AVR CPU, optimized for ATmega8
+ * arch:    AVR CPU
  * author:  (c)2012 Pavel Revak <pavel.revak@gmail.com>
  * licence: GPL
  */
 
-#include <util/delay.h>
 #include <avr/io.h>
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 #include <avr/wdt.h>
 #include <avr/boot.h>
 #include <avr/pgmspace.h>
+#include <util/delay.h>
 
+#include "lib/cpudefs.h"
 #include "drv/uart.h"
 #include "drv/selfpg.h"
 
@@ -139,8 +140,10 @@ char readHexString(const char *str, unsigned char *buffer, unsigned char size) {
 }
 
 static char ready = 0;
-static char echo = 0;
 static uint8_t crcOk;
+#ifdef USE_ECHO
+static char echo = 0;
+#endif
 
 void readCommand(char **cmd, char count) {
 	if (compareString(PSTR("hello"), cmd[0])) {
@@ -151,6 +154,7 @@ void readCommand(char **cmd, char count) {
 		printNum(SPM_PAGESIZE);
 		printStringP(PSTR("\ncrc "));
 		printStringP(crcOk ? PSTR("ok\n") : PSTR("error\n"));
+#ifdef USE_ECHO
 	} else if (ready && compareString(PSTR("echo"), cmd[0])) {
 		if (count == 2) {
 			echo = (*cmd[1] != '0');
@@ -158,6 +162,7 @@ void readCommand(char **cmd, char count) {
 		printStringP(PSTR("echo "));
 		uartPutChar(echo + '0');
 		uartPutChar('\n');
+#endif
 	} else if (ready && compareString(PSTR("reboot"), cmd[0])) {
 		printStringP(PSTR("rebooting..\n"));
 		wdt_enable(WDTO_250MS);
@@ -218,7 +223,7 @@ char split(char *str, char **out, char max) {
 int main( void ) {
 	// check if was not started from application and chech crc
 	crcOk = checkCrc();
-	if (!(SFIOR & _BV(PUD)) && crcOk) {
+	if (!getPUD() && crcOk) {
 		__asm__("ldi r30, 0x00");
 		__asm__("ldi r31, 0x00");
 		__asm__("ijmp");
@@ -227,12 +232,12 @@ int main( void ) {
 	wdt_enable(WDTO_2S);
 	wdt_reset();
 
-	GICR = _BV(IVCE);
-	GICR = _BV(IVSEL);
+	setIVCE();
+	setIVSEL();
 
 	uartOpen(115200UL);
 
-	SFIOR &= ~ _BV(PUD);
+	setPUD();
 
 	sei();
 
@@ -243,7 +248,9 @@ int main( void ) {
 		wdt_reset();
 		char ch = uartGetChar();
 		if (ch == 0) continue;
+#ifdef USE_ECHO
 		if (ready && echo) uartPutChar(ch);
+#endif
 		if (ch != '\n' && ch != '\r') {
 			buffer[index++] = (char)ch;
 			buffer[index] = 0;

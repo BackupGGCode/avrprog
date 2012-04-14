@@ -6,13 +6,15 @@
 # licence: GPL
 
 # TODO:
-# - remove pyserial dependency
+# - remove/optional pyserial dependency
 # - add support for all avr
 # - read intel hexfile format
 # - save buffer
 # - eeprom write
 # - eeprom read
 # - eeprom save
+# - spi speed option
+# - limited support for unknown AVR (flash size will be detected from signature)
 
 import sys
 import serial

@@ -13,13 +13,13 @@ clean:
 	@make -f avrboot.mk $@
 	@make -f avrprog.mk $@
 
-avrprog_upload:
-	@echo "  MAKE   "$@
-	@make -f avrprog.mk upload
-
 avrboot_flash:
 	@echo "  MAKE   "$@
 	@make -f avrboot.mk flash
+
+avrprog_upload:
+	@echo "  MAKE   "$@
+	@make -f avrprog.mk upload
 
 fuses:
 	@echo "  MAKE   "$@

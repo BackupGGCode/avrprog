@@ -29,12 +29,12 @@ upload: $(SREC)
 
 flash: $(SREC)
 	@echo "  FLASH  "$<
-	$(PG) $(PGFLAGS) cpu load:$< erase $(FUSES) flash verify $(FUSE_LOCK)
+	@$(PG) $(PGFLAGS) cpu:$(MMCU) load:$< erase $(FUSES) flash verify $(FUSE_LOCK)
 
 fuses:
 	@echo "  FUSES"
-	$(PG) $(PGFLAGS) cpu fuse
+	@$(PG) $(PGFLAGS) cpu fuse
 
 dump_flash:
 	@echo "  DUMP"
-	$(PG) $(PGFLAGS) cpu dump buffer
+	@$(PG) $(PGFLAGS) cpu dump buffer
