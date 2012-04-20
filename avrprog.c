@@ -241,7 +241,7 @@ void readCommand(char **cmd, char count) {
 					}
 					/* read lock */
 					printStringP(PSTR("lock "));
-					printHex8(avrCmd(0x58, 0x00, 0x00, 0x00));	/// LOCK
+					printHex8(avrCmd(0x58, 0x00, 0x00, 0x00));	/* LOCK */
 					uartPutChar('\n');
 				} else if (compareString(PSTR("fusel"), cmd[1])) {
 					if (count > 2 && !readHexNum(cmd[2], &tmp, 1)) {
@@ -251,7 +251,7 @@ void readCommand(char **cmd, char count) {
 					}
 					/* read fuse low */
 					printStringP(PSTR("fusel "));
-					printHex8(avrCmd(0x50, 0x00, 0x00, 0x00));	/// LOW
+					printHex8(avrCmd(0x50, 0x00, 0x00, 0x00));	/* LOW */
 					uartPutChar('\n');
 				} else if (compareString(PSTR("fuseh"), cmd[1])) {
 					if (count > 2 && !readHexNum(cmd[2], &tmp, 1)) {
@@ -261,7 +261,7 @@ void readCommand(char **cmd, char count) {
 					}
 					/* read fuse high */
 					printStringP(PSTR("fuseh "));
-					printHex8(avrCmd(0x58, 0x08, 0x00, 0x00));	/// HIGH
+					printHex8(avrCmd(0x58, 0x08, 0x00, 0x00));	/* HIGH */
 					uartPutChar('\n');
 				} else if (compareString(PSTR("fusee"), cmd[1])) {
 					if (count > 2 && !readHexNum(cmd[2], &tmp, 1)) {
@@ -271,12 +271,12 @@ void readCommand(char **cmd, char count) {
 					}
 					/* read fuse ext */
 					printStringP(PSTR("fusee "));
-					printHex8(avrCmd(0x50, 0x08, 0x00, 0x00));	/// EXT
+					printHex8(avrCmd(0x50, 0x08, 0x00, 0x00));	/* EXT */
 					uartPutChar('\n');
 				} else if (compareString(PSTR("cal"), cmd[1])) {
 					/* read calibration byte */
 					printStringP(PSTR("cal "));
-					printHex8(avrCmd(0x38, 0x00, 0x00, 0x00));	/// CALIB
+					printHex8(avrCmd(0x38, 0x00, 0x00, 0x00));	/* CALIB */
 					uartPutChar('\n');
 				} else if (compareString(PSTR("flash"), cmd[1])) {
 					if (count > 2) {
@@ -377,14 +377,12 @@ void readCommand(char **cmd, char count) {
 			printStringP(PSTR("flash ok\n"));
 		}
 	} else if (ready && compareString(PSTR("bootloader"), cmd[0])) {
+		printStringP(PSTR("starting bootloader..\n"));
+		_delay_ms(10);
 		cli();
-		// DISABLE SERIAL
-		setUBRRH(0x00);
-		setUBRRL(0x00);
-		setUCSRA(0x00);
-		setUCSRB(0x00);
-		setUCSRC(0x00);
-		// SET PUD (to stay in bootloader)
+		spiprogClose();
+		uartClose();
+		/* SET PUD to stay in bootloader */
 		setPUD();
 
 		wdt_enable(WDTO_2S);
@@ -432,8 +430,8 @@ char split(char *str, char **out, char max) {
 #define BUFFER_SIZE 640
 #define MAX_CMD_SPLIT 10
 
-int main( void ) {
-	// enable watchdog..
+int main() {
+	/* enable watchdog.. */
 	wdt_enable(WDTO_2S);
 	wdt_reset();
 
@@ -443,7 +441,7 @@ int main( void ) {
 	uartOpen(115200UL);
 	spiprogInit();
 
-	setPUD();
+	clrPUD();
 
 	sei();
 

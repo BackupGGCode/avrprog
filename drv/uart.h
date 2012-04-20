@@ -6,5 +6,6 @@ extern void uartPutChar(char c);
 extern char uartIsChar();
 extern char uartGetChar();
 extern void uartOpen(uint32_t baud);
+extern void uartClose();
 
 #endif  /* UART_H */

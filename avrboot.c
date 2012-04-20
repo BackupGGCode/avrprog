@@ -220,15 +220,28 @@ char split(char *str, char **out, char max) {
 	return count;
 }
 
-int main( void ) {
-	// check if was not started from application and chech crc
+int main() {
 	crcOk = checkCrc();
-	if (!getPUD() && crcOk) {
+	/* if CRC is OK, then we can start application */
+	while (crcOk) {
+		/* if PUD is cleared */
+		/* (reset default PUD is set, but application can clear this bit) */
+		/* .. then we stay in bootloader */
+		if (getPUD()) break;
+		/* test PINB2 (jumper - stay in bootloader) */
+		/* turn on PULL UP on this pin */
+		clrPUD();
+		PORTB |= _BV(PORTB1);
+		_delay_ms(10);
+		/* if PINB1 is cleared (jumper is detected) */
+		/* .. then we stay in bootloader */
+		if (!((PINB >> PINB1) & 1)) break;
+		/* start app */
 		__asm__("ldi r30, 0x00");
 		__asm__("ldi r31, 0x00");
 		__asm__("ijmp");
 	}
-	// enable watchdog..
+	/* enable watchdog.. */
 	wdt_enable(WDTO_2S);
 	wdt_reset();
 
@@ -237,7 +250,7 @@ int main( void ) {
 
 	uartOpen(115200UL);
 
-	setPUD();
+	clrPUD();
 
 	sei();
 

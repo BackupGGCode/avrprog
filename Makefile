@@ -1,17 +1,10 @@
-all: avrboot avrprog
+# usage:
+#   make BUILD=avrboot [target]
 
-avrboot:
-	@echo "  MAKE   "$@
-	@make -f avrboot.mk all
+BUILD ?= avrboot avrprog
 
-avrprog:
-	@echo "  MAKE   "$@
-	@make -f avrprog.mk all
-
-clean:
-	@echo "  MAKE   "$@
-	@make -f avrboot.mk $@
-	@make -f avrprog.mk $@
+all clean hex bin srec meminfo dump dumpf:
+	@for i in $(BUILD); do echo "  MAKE   "$$i $@; make -f $$i.mk $@; done
 
 avrboot_flash:
 	@echo "  MAKE   "$@

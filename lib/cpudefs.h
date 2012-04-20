@@ -1,15 +1,20 @@
 #ifndef CPUDEFS_H
 #define CPUDEFS_H 1
 
+#define clrBit(reg, bit) {(reg) &= ~ _BV((bit));}
+#define setBit(reg, bit) {(reg) |= _BV((bit));}
+#define cplBit(reg, bit) {(reg) ^= _BV((bit));}
+#define getBit(reg, bit) (((reg) >> (bit)) & 1)
+
 #if defined (__AVR_ATmega8__)
 
-	#define getPUD() (SFIOR & _BV(PUD))
-	#define setPUD() {SFIOR &= ~ _BV(PUD);}
+	#define getPUD() getBit(SFIOR, PUD)
+	#define clrPUD() clrBit(SFIOR, PUD)
+	#define setPUD() setBit(SFIOR, PUD)
 	#define setIVCE() {GICR = _BV(IVCE);}
 	#define setIVSEL() {GICR = _BV(IVSEL);}
 
-
-	#define getUDR() UDR
+	#define getUDR() (UDR)
 	#define setUDR(val) {UDR = (val);}
 	#define setUBRRL(val) {UBRRL = (val);}
 	#define setUBRRH(val) {UBRRH = (val);}
@@ -28,16 +33,24 @@
 	#define BV_RXEN _BV(RXEN)
 	#define BV_RXCIE _BV(RXCIE)
 	#define USART_RX_vect USART_RXC_vect
-	#define waitUDRE() {while (!(UCSRA & (1<<UDRE)));}
+	#define waitUDRE() {while (!getBit(UCSRA, UDRE));};
 
-#elif defined (__AVR_ATmega88__) || defined (__AVR_ATmega168__)
+#elif defined(__AVR_ATmega48__) \
+ || defined(__AVR_ATmega48P__) \
+ || defined(__AVR_ATmega88__) \
+ || defined(__AVR_ATmega88P__) \
+ || defined (__AVR_ATmega168__) \
+ || defined (__AVR_ATmega168P__) \
+ || defined (__AVR_ATmega328__) \
+ || defined (__AVR_ATmega328P__)
 
-	#define getPUD() (MCUCR & _BV(PUD))
-	#define setPUD() {MCUCR &= ~ _BV(PUD);}
+	#define getPUD() getBit(MCUCR, PUD)
+	#define clrPUD() clrBit(MCUCR, PUD)
+	#define setPUD() setBit(MCUCR, PUD)
 	#define setIVCE() {MCUCR = _BV(IVCE);}
 	#define setIVSEL() {MCUCR = _BV(IVSEL);}
 
-	#define getUDR() UDR0
+	#define getUDR() (UDR0)
 	#define setUDR(val) {UDR0 = (val);}
 	#define setUBRRL(val) {UBRR0L = (val);}
 	#define setUBRRH(val) {UBRR0H = (val);}
@@ -51,7 +64,7 @@
 	#define BV_TXEN _BV(TXEN0)
 	#define BV_RXEN _BV(RXEN0)
 	#define BV_RXCIE _BV(RXCIE0)
-	#define waitUDRE() {while (!(UCSR0A & (1<<UDRE0)));};
+	#define waitUDRE() {while (!getBit(UCSR0A, UDRE0));};
 
 #else
 	#error "Wrong CPU selected"

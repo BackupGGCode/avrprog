@@ -65,3 +65,11 @@ void uartOpen(uint32_t baud) {
 	setUCSRC(BV_UCSZ1 | BV_UCSZ0);
 	setUCSRB(BV_TXEN | BV_RXEN | BV_RXCIE);
 }
+
+void uartClose() {
+	setUBRRH(0x00);
+	setUBRRL(0x00);
+	setUCSRA(0x00);
+	setUCSRB(0x00);
+	setUCSRC(0x00);
+}

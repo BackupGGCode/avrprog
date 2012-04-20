@@ -14,17 +14,17 @@
 #define DD_MOSI DDB3
 #define DD_SCK DDB5
 
-void spiprogInit(void) {
+void spiprogInit() {
 	SPCR = _BV(MSTR) | _BV(SPR1);
 	SPSR = 0;
 }
 
-void spiprogEnable(void) {
+void spiprogEnable() {
 	DDR_SPI |= _BV(DD_MOSI) | _BV(DD_SCK);
 	SPCR |= _BV(SPE);
 }
 
-void spiprogDisable(void) {
+void spiprogDisable() {
 	DDR_SPI &= ~ (_BV(DD_MOSI) | _BV(DD_SCK));
 	SPCR &= ~ _BV(SPE);
 }
@@ -47,3 +47,9 @@ unsigned char spiprogSend(unsigned char data) {
 	while (!(SPSR & _BV(SPIF)));
 	return SPDR;
 }
+
+void spiprogClose() {
+	SPCR = 0;
+	SPSR = 0;
+}
+
