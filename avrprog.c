@@ -61,7 +61,7 @@ static unsigned char avrCmd(unsigned char data1, unsigned char data2, unsigned c
 
 void printStringP(PGM_P str) {
 	char ch;
-	while(ch = pgm_read_byte(str++)) {
+	while((ch = pgm_read_byte(str++))) {
 		uartPutChar(ch);
 	}
 }
@@ -108,7 +108,7 @@ char readHex4(char ch) {
 	return h;
 }
 
-char readHexNum(char *str, unsigned char *out, char bytes) {
+char readHexNum(char *str, unsigned char *out, unsigned char bytes) {
 	while (bytes-- > 0) {
 		unsigned char h = readHex4(*str++) << 4;
 		if (h == -1) return 1;
@@ -119,8 +119,8 @@ char readHexNum(char *str, unsigned char *out, char bytes) {
 	return 0;
 }
 
-char readHexString(const char *str, unsigned char *buffer, unsigned char size) {
-	char count = 0;
+char readHexString(const char *str, unsigned char *buffer, unsigned int size) {
+	unsigned int count = 0;
 	char crc8 = 0x00;
 	while (count++ < size && *str) {
 		unsigned char h = readHex4(*str++) << 4;
@@ -281,8 +281,8 @@ void readCommand(char **cmd, char count) {
 				} else if (compareString(PSTR("flash"), cmd[1])) {
 					if (count > 2) {
 						if (compareString(PSTR("read"), cmd[2])) {
-							unsigned int addrFrom;
-							unsigned int addrTo;
+							uint32_t addrFrom;
+							uint32_t addrTo;
 							if (count != 5 || readHexNum(cmd[3], (unsigned char *)&addrFrom, 3) || readHexNum(cmd[4], (unsigned char *)&addrTo, 3) || (addrFrom > addrTo)) {
 								printStringP(PSTR("bad parameters\n"));
 							} else {
@@ -322,7 +322,7 @@ void readCommand(char **cmd, char count) {
 								printStringP(PSTR("parameters error\n"));
 							} else if (addr % (unsigned long)blockSize) {
 								printStringP(PSTR("address error\n"));
-							} else if (errorCode = readHexStringToSpi(cmd[5], blockSize)) {
+							} else if ((errorCode = readHexStringToSpi(cmd[5], blockSize))) {
 								printStringP(PSTR("data error: "));
 								printNum(errorCode);
 								uartPutChar('\n');
@@ -366,7 +366,7 @@ void readCommand(char **cmd, char count) {
 		/* flash <addr_16bit> <PG_MAGIC> <data_SPM_PAGESIZE> */
 		static uint16_t addr;
 		static uint16_t pgMagic;
-		static char buff[SPM_PAGESIZE + 1];
+		static unsigned char buff[SPM_PAGESIZE + 1];
 		if (count != 4 || readHexNum(cmd[1], (unsigned char *)&addr, 2) || readHexNum(cmd[2], (unsigned char *)&pgMagic, 2)) {
 			printStringP(PSTR("bad parameters\n"));
 		} else if (readHexString(cmd[3], buff, SPM_PAGESIZE) == -1) {
@@ -409,7 +409,7 @@ void readCommand(char **cmd, char count) {
 }
 
 char split(char *str, char **out, char max) {
-	char count = 0;
+	unsigned char count = 0;
 	char inWord = 0;
 	while (*str != 0) {
 		if (*str == ' ') {

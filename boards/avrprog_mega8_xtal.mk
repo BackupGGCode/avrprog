@@ -1,10 +1,15 @@
-# settings for avrprog bootloader on mega8 with XTAL oscilator
+# cpu type
+MMCU ?= atmega8
 
-MMCU = atmega8
-F_CPU = 7372800
-BOOT_ADDRESS = 0x1800
-PROGPG_ADDRESS = 0x1f80
-FUSEL = 0x2f
-FUSEH = 0x90
-#FUSEE = 0xff
-#LOCK = 0xff
+# cpu clock
+F_CPU ?= 7372800
+
+# bootloader addresses
+BOOT_ADDRESS ?= 0x1800
+PROGPG_ADDRESS ?= 0x1f80
+
+# fuses
+FUSEL ?= 0x2f
+FUSEH ?= 0x90
+# FUSEE ?= 0xff
+# LOCK ?= 0xff

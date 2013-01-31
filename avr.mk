@@ -1,48 +1,48 @@
 # name:    makefile script
-# desc:    makefile script for cross bulding AVR/AVR32 projects (LINUX version)
-# author:  (c)2012 Pavel Revak <pavel.revak@gmail.com>
+# desc:    makefile script for cross bulding AVR projects (UNIX version)
+# author:  (c)2012-2013 Pavel Revak <pavel.revak@gmail.com>
 # licence: GPL
 
-###### general project settings (these settings are overwrited from config.mk file)
+
+### these definitions are project specific, put all in to your Makefile
+
+# project name
 NAME ?= project
-SRC ?= main.c
+
+# cpu type
+MMCU ?= atmega8
+
+# cpu clock
 F_CPU ?= 8000000
 
-# AVR
-#MMCU ?= atmega8
-#CROSS_COMPILE ?= avr-
+# optimize (0, 1, 2, 3, s)
+OPTIMIZE ?= s
 
-# AVR32
-#MPART ?= uc3a3256
-#CROSS_COMPILE ?= avr32-
+# source files to compile
+# SRC +=
 
-CCFLAGS ?= -Os
-LNFLAGS ?=
-OCFLAGS ?=
-#####
+# source files to compile with link-time-optimalisations
+# SRC_LTO += $(NAME).c
 
-BUILDDIR = build/$(NAME)
+# other compiler and linker options
+CCFLAGS +=
+LNFLAGS +=
+OCFLAGS +=
 
-CC = $(CROSS_COMPILE)gcc
-LN = $(CROSS_COMPILE)gcc
-OC = $(CROSS_COMPILE)objcopy
-OD = $(CROSS_COMPILE)objdump
-SZ = $(CROSS_COMPILE)size
+# don't forget to include this avr.mk from yout Makefile
+# include avr.mk
 
-ifdef MMCU
-	CPUFLAGS ?= -mmcu=$(MMCU)
+###
+
+
+BUILDDIR ?= build/$(NAME)
+CROSS_COMPILE ?= avr-
+
+GCCFLAGS += -mmcu=$(MMCU)
+
+ifdef OPTIMIZE
+	GCCFLAGS += -O$(OPTIMIZE)
 endif
-
-ifdef MPART
-	CPUFLAGS ?= -mpart=$(MPART)
-endif
-
-
-CCFLAGS += $(CPUFLAGS) -std=c99 -gstabs -c -D F_CPU=$(F_CPU) -D CPU=\"$(MMCU)\" -I. -fshort-enums
-LNFLAGS += $(CPUFLAGS) -Wl,--cref
-OCFLAGS += -j .text -j .data
-ODFLAGS += -S -w -a -f -d
-SZFLAGS += -Bd
 
 ifdef DEBUG
 	CCFLAGS += -DDEBUG
@@ -52,8 +52,22 @@ ifndef VERBOSE
 	V = @
 endif
 
-OBJ = $(patsubst %.c,$(BUILDDIR)/%.o,$(SRC))
+CCFLAGS += $(GCCFLAGS) -Wall -std=c11 -c -D F_CPU=$(F_CPU) -D CPU=\"$(MMCU)\" -I. -fshort-enums
+LNFLAGS += $(GCCFLAGS) -Wl,--cref -flto
+OCFLAGS += -j .text -j .data
+ODFLAGS += -S -w -a -f -d
+SZFLAGS += -Bd
+
+CC = $(CROSS_COMPILE)gcc
+LN = $(CROSS_COMPILE)gcc
+OC = $(CROSS_COMPILE)objcopy
+OD = $(CROSS_COMPILE)objdump
+SZ = $(CROSS_COMPILE)size
+
 DEP = $(patsubst %.c,$(BUILDDIR)/%.d,$(SRC))
+OBJ = $(patsubst %.c,$(BUILDDIR)/%.o,$(SRC))
+DEP_LTO = $(patsubst %.c,$(BUILDDIR)/%.lto.d,$(SRC_LTO))
+OBJ_LTO = $(patsubst %.c,$(BUILDDIR)/%.lto.o,$(SRC_LTO))
 
 ELF = $(BUILDDIR)/$(NAME).elf
 HEX = $(BUILDDIR)/$(NAME).hex
@@ -62,61 +76,66 @@ SREC = $(BUILDDIR)/$(NAME).srec
 DUMP = $(BUILDDIR)/$(NAME).dump
 MAP = $(BUILDDIR)/$(NAME).map
 
-CLEANFILES = $(OBJ) $(DEP) $(ELF) $(SREC) $(HEX) $(BIN) $(DUMP) $(MAP)
+CLEANFILES = $(OBJ) $(OBJ_LTO) $(DEP) $(DEP_LTO) $(ELF) $(SREC) $(HEX) $(BIN) $(DUMP) $(MAP)
 
-all:	dep srec bin hex dumpf
+all:	dep srec bin hex dump
 
 hex:	$(HEX)
 bin:	$(BIN)
 srec:	$(SREC)
-dumpf:	$(DUMP)
-dep:	$(DEP)
+dump:	$(DUMP)
+dep:	$(DEP) $(DEP_LTO)
 
-$(BUILDDIR)/%.d:	%.c
+$(BUILDDIR)/%.d: %.c
+	@echo "  DEP    $@ ($<)"
 	$(V)$(CC) $(CCFLAGS) $< -MM -MT '$(patsubst %.d,%.o,$@)' -MF $@
 
-$(BUILDDIR)/%.o:	%.c
-	@echo "  CC    " $@ "("$<")"
+$(BUILDDIR)/%.lto.d: %.c
+	@echo "  DEP    $@ ($<) (LTO)"
+	$(V)$(CC) $(CCFLAGS) $< -MM -MT '$(patsubst %.d,%.o,$@)' -MF $@
+
+$(BUILDDIR)/%.o: %.c
+	@echo "  CC     $@ ($<)"
 	$(V)$(CC) $(CCFLAGS) $< -o $@
 
-$(ELF): $(OBJ)
-	@echo "  LN    " $@ "("$(OBJ)")"
-	$(V)$(LN) $(LNFLAGS) -o $@ $(OBJ) -Wl,-Map=$(MAP)
+$(BUILDDIR)/%.lto.o: %.c
+	@echo "  CC     $@ ($<) (LTO)"
+	$(V)$(CC) $(CCFLAGS) -flto $< -o $@
+
+$(ELF): $(OBJ) $(OBJ_LTO)
+	@echo "  LN     $@ ($^)"
+	$(V)$(LN) $(LNFLAGS) -o $@ $^ -Wl,-Map=$(MAP)
 
 $(HEX): $(ELF)
-	@echo "  OC    " $@ "("$<")"
+	@echo "  OC     $@ ($<)"
 	$(V)$(OC) $(OCFLAGS) -O ihex $< $@
 
 $(BIN): $(ELF)
-	@echo "  OC    " $@ "("$<")"
+	@echo "  OC     $@ ($<)"
 	$(V)$(OC) $(OCFLAGS) -O binary $< $@
 	@chmod a+w $@
 
-$(SREC):	$(ELF)
-	@echo "  OC    " $@ "("$<")"
+$(SREC): $(ELF)
+	@echo "  OC     $@ ($<)"
 	$(V)$(OC) $(OCFLAGS) -O srec $< $@
 
-$(DUMP):	$(ELF)
-	@echo "  ODF   " $(NAME) "..."
+$(DUMP): $(ELF)
+	@echo "  OD     $@ ($<)"
 	$(V)$(OD) $(ODFLAGS) $< > $@
 
-dump:	$(ELF)
-	@echo "  OD    " $(NAME) "..."
-	$(V)$(OD) $(ODFLAGS) $<
-
-meminfo:	$(ELF)
-	@echo "  SIZE  " $(NAME) "..."
-	$(V)$(SZ) $(SZFLAGS) $(OBJ) $<
+meminfo: $(OBJ) $(OBJ_LTO) $(ELF)
+	@echo "  SIZE   $(NAME) ..."
+	$(V)$(SZ) $(SZFLAGS) $^
 
 clean:
-	@echo "  CLEAN "
+	@echo "  CLEAN"
 	$(V)rm -f $(CLEANFILES)
 
--include $(DEP)
+-include $(DEP) $(DEP_LTO)
 
-.PHONY: all hex bin srec dumpf dep dump meminfo clean
+.PHONY: all hex bin srec dump dep dump meminfo clean
 
-$(shell mkdir -p $(dir $(OBJ)))
+$(shell mkdir -p $(dir $(OBJ) $(OBJ_LTO)))
 
 # programer definitions
 -include pg.mk

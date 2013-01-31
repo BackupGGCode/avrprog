@@ -28,19 +28,21 @@ static uint8_t rx_buffer[BUFFER_SIZE];
 static uint8_t rx_tail;
 static volatile uint8_t rx_head;
 
-void uartPutChar(char c) {
-#ifdef ASCII_MODE
-	if (c == '\n') uartPutChar('\r');
-#endif
-	waitUDRE();
-	setUDR(c);
-}
-
 ISR(USART_RX_vect) {
 	uint8_t ch = getUDR();
 	if (((rx_head + 1) & BUFFER_MASK) == rx_tail) return;
 	rx_buffer[rx_head++] = ch;
 	rx_head &= BUFFER_MASK;
+}
+
+void uartPutCharBinary(char c) {
+	waitUDRE();
+	setUDR(c);
+}
+
+void uartPutChar(char c) {
+	if (c == '\n') uartPutCharBinary('\r');
+	uartPutCharBinary(c);
 }
 
 char uartIsChar() {
@@ -55,6 +57,29 @@ char uartGetChar() {
 	return 0;
 }
 
+static int uartPutCharBinaryStd(char c, FILE *stream) {
+	uartPutChar(c);
+	return 0;
+}
+
+static int uartPutCharStd(char c, FILE *stream) {
+	uartPutChar(c);
+	return 0;
+}
+
+static int uartGetCharStd(FILE *stream) {
+	if (uartIsChar()) return uartGetChar();
+	return EOF;
+}
+
+void uartClose() {
+	setUBRRH(0x00);
+	setUBRRL(0x00);
+	setUCSRA(0x00);
+	setUCSRB(0x00);
+	setUCSRC(0x00);
+}
+
 void uartOpen(uint32_t baud) {
 	uint16_t br = ((F_CPU + baud * 4UL) / (baud * 8UL) - 1);
 	rx_head = 0;
@@ -66,10 +91,17 @@ void uartOpen(uint32_t baud) {
 	setUCSRB(BV_TXEN | BV_RXEN | BV_RXCIE);
 }
 
-void uartClose() {
-	setUBRRH(0x00);
-	setUBRRL(0x00);
-	setUCSRA(0x00);
-	setUCSRB(0x00);
-	setUCSRC(0x00);
+static FILE ttyUART;
+
+FILE *uartFOpenBinary(uint32_t baud) {
+	uartOpen(baud);
+	fdev_setup_stream(&ttyUART, uartPutCharBinaryStd, uartGetCharStd, _FDEV_SETUP_RW);
+	return &ttyUART;
 }
+
+FILE *uartFOpen(uint32_t baud) {
+	uartOpen(baud);
+	fdev_setup_stream(&ttyUART, uartPutCharStd, uartGetCharStd, _FDEV_SETUP_RW);
+	return &ttyUART;
+}
+

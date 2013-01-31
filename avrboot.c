@@ -35,6 +35,7 @@ NO CARRIER 0 ERROR 0
 #define NAME "avrboot"
 #define VERSION "v1.0"
 #define COPYRIGHT "2012 pavel.revak@gmail.com"
+#define USE_ECHO 1
 
 static uint16_t crc16_update(uint16_t crc, uint8_t a) {
 	uint8_t i;
@@ -69,7 +70,7 @@ static uint8_t checkCrc() {
 
 void printStringP(PGM_P str) {
 	char ch;
-	while(ch = pgm_read_byte(str++)) {
+	while((ch = pgm_read_byte(str++))) {
 		uartPutChar(ch);
 	}
 }
@@ -110,7 +111,7 @@ char readHex4(char ch) {
 	return h;
 }
 
-char readHexNum(char *str, unsigned char *out, char bytes) {
+char readHexNum(char *str, unsigned char *out, unsigned char bytes) {
 	while (bytes-- > 0) {
 		unsigned char h = readHex4(*str++) << 4;
 		if (h == -1) return 1;
@@ -121,8 +122,8 @@ char readHexNum(char *str, unsigned char *out, char bytes) {
 	return 0;
 }
 
-char readHexString(const char *str, unsigned char *buffer, unsigned char size) {
-	char count = 0;
+char readHexString(const char *str, char *buffer, unsigned int size) {
+	unsigned int count = 0;
 	char crc8 = 0x00;
 	while (count++ <= size && *str) {
 		unsigned char h = readHex4(*str++) << 4;
@@ -198,11 +199,11 @@ void readCommand(char **cmd, char count) {
 	printStringP(PSTR("ready\n"));
 }
 
-#define BUFFER_SIZE 256
+#define BUFFER_SIZE 640
 #define MAX_CMD_SPLIT 5
 
-char split(char *str, char **out, char max) {
-	char count = 0;
+char split(char *str, char **out, unsigned char max) {
+	unsigned char count = 0;
 	char inWord = 0;
 	while (*str != 0) {
 		if (*str == ' ') {
@@ -221,6 +222,7 @@ char split(char *str, char **out, char max) {
 }
 
 int main() {
+	// OSCCAL = 0x85;
 	crcOk = checkCrc();
 	/* if CRC is OK, then we can start application */
 	while (crcOk) {
@@ -228,7 +230,7 @@ int main() {
 		/* (reset default PUD is set, but application can clear this bit) */
 		/* .. then we stay in bootloader */
 		if (getPUD()) break;
-		/* test PINB2 (jumper - stay in bootloader) */
+		/* test PINB1 (jumper - stay in bootloader) */
 		/* turn on PULL UP on this pin */
 		clrPUD();
 		PORTB |= _BV(PORTB1);
@@ -255,7 +257,7 @@ int main() {
 	sei();
 
 	static char buffer[BUFFER_SIZE];
-	unsigned char index = 0;
+	unsigned int index = 0;
 
 	while(1) {
 		wdt_reset();

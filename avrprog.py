@@ -1,5 +1,4 @@
 #!/usr/bin/python
-
 # name:    AVR programmer
 # desc:    programming tool for Atmel AVR CPU
 # author:  (c)2012 Pavel Revak <pavel.revak@gmail.com>
@@ -603,7 +602,7 @@ class AvrProg:
             count += 1
             line += ' %02x' % byte
             ascii += ('%c' % byte) if 0x20 <= byte < 0x7f else '.'
-        print line + '   ' * (16 - count) + (' ' if (count <= 8) else '')  + ascii + ' ' * (16 - count) + '|'
+        print(line + '   ' * (16 - count) + (' ' if (count <= 8) else '')  + ascii + ' ' * (16 - count) + '|')
 
 
     def printBuffer(self):
@@ -620,7 +619,7 @@ class AvrProg:
             if addr % 16 == 0:
                 if lineData == previousLineData:
                     if not repeat:
-                        print "*"
+                        print("*")
                         repeat = True
                 else:
                     repeat = False
@@ -859,21 +858,22 @@ class AvrProg:
                 # we can set only these fuses..
                 if fuseId not in ('fusel', 'fuseh', 'fusee', 'lock'):
                     raise AvrProgException('Can not write fuse: %s' % fuseId)
+                dbg.msg("writing %s: 0x%02x" % (fuseId, val))
                 # store fuse and test if fuse is stored correctly
                 if val != self.spiFuse(fuseId, val):
                     raise AvrProgException('Error setting fuse: %s to %02x' % (fuseId, val))
             else:
                 # print the fuse
-                print '%5s: 0x%02x' % (fuseId, self.spiFuse(fuseId))
+                print('%5s: 0x%02x' % (fuseId, self.spiFuse(fuseId)))
         else:
             # read and print all cnown fuses
             for fuseId in self.fuses:
-                print '%5s: 0x%02x' % (fuseId, self.spiFuse(fuseId))
+                print('%5s: 0x%02x' % (fuseId, self.spiFuse(fuseId)))
 
     def printCpuList(self):
-        print "{:^12} {:^12} {:^12}".format('cpu', 'flash', 'eeprom')
+        print("{:^12} {:^12} {:^12}".format('cpu', 'flash', 'eeprom'))
         for attr in cpuList:
-            print "{:<12} {:>12} {:>12}".format(attr['id'], byteSize(2 * attr['flashPageWords'] * attr['flashPagesCount']), byteSize(attr['eepromSize']))
+            print("{:<12} {:>12} {:>12}".format(attr['id'], byteSize(2 * attr['flashPageWords'] * attr['flashPagesCount']), byteSize(attr['eepromSize'])))
 
 
 avrProg = AvrProg()
@@ -883,25 +883,25 @@ try:
         cmd = arg[0]
         arg = arg[1:]
         if cmd == 'help':
-            print "avrprog - avr programmer"
-            print "commands:"
-            print "  help\n    print this help"
-            print "  verbose:<loglevel>\n    set loglevel (0 == no output, 4 = print everything)"
-            print "  clear\n    clear buffer"
-            print "  load:<file>\n    load file in to buffer"
-            print "  buffer\n    print content of buffer"
-            print "  port:<serialport>\n    connect to serial port"
-            print "  bootloader\n    try to start bootloader"
-            print "  reboot\n    reboot device"
-            print "  sign\n    sign content of buffer (use this for flashing from bootloader)"
-            print "  cpu[:<cpuid>]\n    connect to CPU, and detect it (if cpuid not match, programmer exit with error)"
-            print "  erase\n    chip erase, cause erase flash, eeprom and lockbits"
-            print "  flash\n    write buffer to flash"
-            print "  dump\n    read flash to buffer"
-            print "  verify\n    verify flash with buffer"
-            print "  fuse[:<fuseid>[:<value>]]\n    read fuse(s) or write fuse. value is in hex"
+            print("avrprog - avr programmer")
+            print("commands:")
+            print("  help\n    print this help")
+            print("  verbose:<loglevel>\n    set loglevel (0 == no output, 4 = print everything)")
+            print("  clear\n    clear buffer")
+            print("  load:<file>\n    load file in to buffer")
+            print("  buffer\n    print content of buffer")
+            print("  port:<serialport>\n    connect to serial port")
+            print("  bootloader\n    try to start bootloader")
+            print("  reboot\n    reboot device")
+            print("  sign\n    sign content of buffer (use this for flashing from bootloader)")
+            print("  cpu[:<cpuid>]\n    connect to CPU, and detect it (if cpuid not match, programmer exit with error)")
+            print("  erase\n    chip erase, cause erase flash, eeprom and lockbits")
+            print("  flash\n    write buffer to flash")
+            print("  dump\n    read flash to buffer")
+            print("  verify\n    verify flash with buffer")
+            print("  fuse[:<fuseid>[:<value>]]\n    read fuse(s) or write fuse. value is in hex")
         elif cmd == 'about':
-            print "avrprog %s (c)2012 pavel.revak@gmail.com" % VERSION
+            print("avrprog %s (c)2012 pavel.revak@gmail.com" % VERSION)
         elif cmd == 'cpulist':
             avrProg.printCpuList()
         elif cmd == 'verbose':
