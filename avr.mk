@@ -9,6 +9,12 @@
 # project name
 NAME ?= project
 
+# modules directory (path to this directory)
+BASEDIR ?= .
+
+# build directory
+BUILDDIR ?= build/$(NAME)
+
 # cpu type
 MMCU ?= atmega8
 
@@ -24,6 +30,9 @@ OPTIMIZE ?= s
 # source files to compile with link-time-optimalisations
 # SRC_LTO += $(NAME).c
 
+# modules used in project
+# MODULES +=
+
 # other compiler and linker options
 CCFLAGS +=
 LNFLAGS +=
@@ -35,8 +44,11 @@ OCFLAGS +=
 ###
 
 
-BUILDDIR ?= build/$(NAME)
-CROSS_COMPILE ?= avr-
+# $(shell mkdir -p $(BUILDDIR) $(addprefix $(BUILDDIR)/,$(MODULES)))
+
+# MODDIR := $(realpath $(MODDIR))
+
+export CROSS_COMPILE ?= avr-
 
 GCCFLAGS += -mmcu=$(MMCU)
 
@@ -48,94 +60,60 @@ ifdef DEBUG
 	CCFLAGS += -DDEBUG
 endif
 
-ifndef VERBOSE
-	V = @
+ifneq ($(VERBOSE),1)
+	export V := @
 endif
 
-CCFLAGS += $(GCCFLAGS) -Wall -std=c11 -c -D F_CPU=$(F_CPU) -D CPU=\"$(MMCU)\" -I. -fshort-enums
-LNFLAGS += $(GCCFLAGS) -Wl,--cref -flto
-OCFLAGS += -j .text -j .data
-ODFLAGS += -S -w -a -f -d
-SZFLAGS += -Bd
+export CCFLAGS += $(GCCFLAGS) -Wall -pedantic -std=c11 -c -D F_CPU=$(F_CPU) -D CPU=\"$(MMCU)\" -I$(realpath $(BASEDIR)) -fshort-enums
+export LNFLAGS += $(GCCFLAGS) -Wl,--cref -flto
+export OCFLAGS += -j .text -j .data
+export ODFLAGS += -S -w -a -f -d
+export SZFLAGS += -Bd
 
-CC = $(CROSS_COMPILE)gcc
-LN = $(CROSS_COMPILE)gcc
-OC = $(CROSS_COMPILE)objcopy
-OD = $(CROSS_COMPILE)objdump
-SZ = $(CROSS_COMPILE)size
+export CC := $(CROSS_COMPILE)gcc
+export LN := $(CROSS_COMPILE)gcc
+export AR := $(CROSS_COMPILE)ar
+export OC := $(CROSS_COMPILE)objcopy
+export OD := $(CROSS_COMPILE)objdump
+export SZ := $(CROSS_COMPILE)size
 
-DEP = $(patsubst %.c,$(BUILDDIR)/%.d,$(SRC))
-OBJ = $(patsubst %.c,$(BUILDDIR)/%.o,$(SRC))
-DEP_LTO = $(patsubst %.c,$(BUILDDIR)/%.lto.d,$(SRC_LTO))
-OBJ_LTO = $(patsubst %.c,$(BUILDDIR)/%.lto.o,$(SRC_LTO))
+ELF := $(BUILDDIR)/$(NAME).elf
+HEX := $(BUILDDIR)/$(NAME).hex
+BIN := $(BUILDDIR)/$(NAME).bin
+SREC := $(BUILDDIR)/$(NAME).srec
+DUMP := $(BUILDDIR)/$(NAME).dump
+MAP := $(BUILDDIR)/$(NAME).map
 
-ELF = $(BUILDDIR)/$(NAME).elf
-HEX = $(BUILDDIR)/$(NAME).hex
-BIN = $(BUILDDIR)/$(NAME).bin
-SREC = $(BUILDDIR)/$(NAME).srec
-DUMP = $(BUILDDIR)/$(NAME).dump
-MAP = $(BUILDDIR)/$(NAME).map
+.PHONY: hex bin srec dump dep meminfo
 
-CLEANFILES = $(OBJ) $(OBJ_LTO) $(DEP) $(DEP_LTO) $(ELF) $(SREC) $(HEX) $(BIN) $(DUMP) $(MAP)
-
-all:	dep srec bin hex dump
-
+all:	modules srec bin hex dump
 hex:	$(HEX)
 bin:	$(BIN)
 srec:	$(SREC)
 dump:	$(DUMP)
-dep:	$(DEP) $(DEP_LTO)
 
-$(BUILDDIR)/%.d: %.c
-	@echo "  DEP    $@ ($<)"
-	$(V)$(CC) $(CCFLAGS) $< -MM -MT '$(patsubst %.d,%.o,$@)' -MF $@
-
-$(BUILDDIR)/%.lto.d: %.c
-	@echo "  DEP    $@ ($<) (LTO)"
-	$(V)$(CC) $(CCFLAGS) $< -MM -MT '$(patsubst %.d,%.o,$@)' -MF $@
-
-$(BUILDDIR)/%.o: %.c
-	@echo "  CC     $@ ($<)"
-	$(V)$(CC) $(CCFLAGS) $< -o $@
-
-$(BUILDDIR)/%.lto.o: %.c
-	@echo "  CC     $@ ($<) (LTO)"
-	$(V)$(CC) $(CCFLAGS) -flto $< -o $@
-
-$(ELF): $(OBJ) $(OBJ_LTO)
-	@echo "  LN     $@ ($^)"
-	$(V)$(LN) $(LNFLAGS) -o $@ $^ -Wl,-Map=$(MAP)
+# programer definitions
+include build.mk
 
 $(HEX): $(ELF)
-	@echo "  OC     $@ ($<)"
+	@echo "  OC     $(@F) ($(<F))"
 	$(V)$(OC) $(OCFLAGS) -O ihex $< $@
 
 $(BIN): $(ELF)
-	@echo "  OC     $@ ($<)"
+	@echo "  OC     $(@F) ($(<F))"
 	$(V)$(OC) $(OCFLAGS) -O binary $< $@
 	@chmod a+w $@
 
 $(SREC): $(ELF)
-	@echo "  OC     $@ ($<)"
+	@echo "  OC     $(@F) ($(<F))"
 	$(V)$(OC) $(OCFLAGS) -O srec $< $@
 
 $(DUMP): $(ELF)
-	@echo "  OD     $@ ($<)"
+	@echo "  OD     $(@F) ($(<F))"
 	$(V)$(OD) $(ODFLAGS) $< > $@
 
 meminfo: $(OBJ) $(OBJ_LTO) $(ELF)
 	@echo "  SIZE   $(NAME) ..."
 	$(V)$(SZ) $(SZFLAGS) $^
 
-clean:
-	@echo "  CLEAN"
-	$(V)rm -f $(CLEANFILES)
-
--include $(DEP) $(DEP_LTO)
-
-.PHONY: all hex bin srec dump dep dump meminfo clean
-
-$(shell mkdir -p $(dir $(OBJ) $(OBJ_LTO)))
-
-# programer definitions
 -include pg.mk

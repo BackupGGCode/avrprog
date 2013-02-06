@@ -14,8 +14,8 @@
 #include <util/delay.h>
 
 #include "lib/cpudefs.h"
-#include "drv/uart.h"
-#include "drv/selfpg.h"
+#include "drv/uart/uart.h"
+#include "drv/selfpg/selfpg.h"
 
 /*
 ** bluetooth module send this after init and never answer on this!!!:
@@ -122,7 +122,7 @@ char readHexNum(char *str, unsigned char *out, unsigned char bytes) {
 	return 0;
 }
 
-char readHexString(const char *str, char *buffer, unsigned int size) {
+char readHexString(const char *str, unsigned char *buffer, unsigned int size) {
 	unsigned int count = 0;
 	char crc8 = 0x00;
 	while (count++ <= size && *str) {
@@ -172,7 +172,7 @@ void readCommand(char **cmd, char count) {
 		/* flash <addr_16bit> <PG_MAGIC> <data_SPM_PAGESIZE> */
 		static uint16_t addr;
 		static uint16_t pgMagic;
-		static char buff[SPM_PAGESIZE + 1];
+		static unsigned char buff[SPM_PAGESIZE + 1];
 		if (count != 4 || readHexNum(cmd[1], (unsigned char *)&addr, 2) || readHexNum(cmd[2], (unsigned char *)&pgMagic, 2)) {
 			printStringP(PSTR("parameters error\n"));
 		} else if ((addr % SPM_PAGESIZE) || (addr >= BOOT_ADDRESS)) {

@@ -23,6 +23,8 @@ ifdef LOCK
 	FUSE_LOCK = fuse:lock:$(LOCK)
 endif
 
+.PHONY: upload flash fuses dump_flash buffer
+
 upload: $(SREC)
 	@echo "  UPLOAD  $<"
 	$(V)$(PG) $(PGFLAGS) load:$< $(PORTFLAG) bootloader sign flash reboot
