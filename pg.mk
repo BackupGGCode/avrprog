@@ -1,4 +1,4 @@
-PG ?= python avrprog.py
+PG ?= python $(BASEDIR)/avrprog.py
 PORT ?= /dev/tty.avrprog
 
 #PGFLAGS =
@@ -10,20 +10,21 @@ PORTFLAG ?= port:$(PORT)
 # FUSEE = 0xff
 # LOCK = 0xff
 
+FUSEFLAGS :=
 ifdef FUSEL
-	FUSES += fuse:fusel:$(FUSEL)
+	FUSEFLAGS += fuse:fusel:$(FUSEL)
 endif
 ifdef FUSEH
-	FUSES += fuse:fuseh:$(FUSEH)
+	FUSEFLAGS += fuse:fuseh:$(FUSEH)
 endif
 ifdef FUSEE
-	FUSES += fuse:fusee:$(FUSEE)
+	FUSEFLAGS += fuse:fusee:$(FUSEE)
 endif
 ifdef LOCK
 	FUSE_LOCK = fuse:lock:$(LOCK)
 endif
 
-.PHONY: upload flash fuses dump_flash buffer
+.PHONY: upload flash fuses download_flash buffer
 
 upload: $(SREC)
 	@echo "  UPLOAD  $<"
@@ -31,15 +32,19 @@ upload: $(SREC)
 
 flash: $(SREC)
 	@echo "  FLASH   $<"
-	$(V)$(PG) $(PGFLAGS) load:$< $(PORTFLAG) cpu:$(MMCU) erase $(FUSES) flash verify $(FUSE_LOCK)
+	$(V)$(PG) $(PGFLAGS) load:$< $(PORTFLAG) cpu:$(MMCU) erase $(FUSEFLAGS) flash verify $(FUSE_LOCK)
+
+print_flash: $(SREC)
+	@echo "  FLASH   $<"
+	$(V)$(PG) $(PGFLAGS) load:$< buffer
 
 fuses:
 	@echo "  FUSES"
 	$(V)$(PG) $(PGFLAGS) $(PORTFLAG) cpu fuse
 
-dump_flash:
+download_flash:
 	@echo "  DUMP"
-	$(V)$(PG) $(PGFLAGS) $(PORTFLAG) cpu dump buffer
+	$(V)$(PG) $(PGFLAGS) $(PORTFLAG) cpu download buffer
 
 buffer: $(SREC)
 	@echo "  BUFFER  $<"

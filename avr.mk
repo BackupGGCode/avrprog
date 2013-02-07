@@ -87,13 +87,10 @@ MAP := $(BUILDDIR)/$(NAME).map
 .PHONY: hex bin srec dump dep meminfo
 
 all:	modules srec bin hex dump
-hex:	$(HEX)
-bin:	$(BIN)
-srec:	$(SREC)
-dump:	$(DUMP)
-
-# programer definitions
-include build.mk
+hex:	modules $(HEX)
+bin:	modules $(BIN)
+srec:	modules $(SREC)
+dump:	modules $(DUMP)
 
 $(HEX): $(ELF)
 	@echo "  OC     $(@F) ($(<F))"
@@ -116,4 +113,5 @@ meminfo: $(OBJ) $(OBJ_LTO) $(ELF)
 	@echo "  SIZE   $(NAME) ..."
 	$(V)$(SZ) $(SZFLAGS) $^
 
--include pg.mk
+include $(BASEDIR)/build.mk
+-include $(BASEDIR)/pg.mk
