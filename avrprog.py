@@ -24,15 +24,15 @@ cpuList = [
     {
         'id': 'attiny13',
         'name': 'ATtiny13',
-        'signature': [ 0x1e, 0x90, 0x07, ],
+        'signature': [0x1e, 0x90, 0x07, ],
         'flashPageWords': 16,
         'flashPagesCount': 32,
         'eepromSize': 64,
         'fuses': ['fusel', 'fuseh', 'lock', 'cal'],
-    },{
+    }, {
         'id': 'attiny26',
         'name': 'ATtiny26',
-        'signature': [ 0x1e, 0x91, 0x09, ],
+        'signature': [0x1e, 0x91, 0x09, ],
         'flashPageWords': 16,
         'flashPagesCount': 64,
         'eepromSize': 128,
@@ -40,7 +40,7 @@ cpuList = [
     }, {
         'id': 'atmega48',
         'name': 'ATmega48',
-        'signature': [ 0x1e, 0x92, 0x05, ],
+        'signature': [0x1e, 0x92, 0x05, ],
         'flashPageWords': 32,
         'flashPagesCount': 64,
         'eepromSize': 256,
@@ -48,7 +48,7 @@ cpuList = [
     }, {
         'id': 'atmega48p',
         'name': 'ATmega48p',
-        'signature': [ 0x1e, 0x92, 0x0a, ],
+        'signature': [0x1e, 0x92, 0x0a, ],
         'flashPageWords': 32,
         'flashPagesCount': 64,
         'eepromSize': 256,
@@ -56,7 +56,7 @@ cpuList = [
     }, {
         'id': 'atmega8',
         'name': 'ATmega8',
-        'signature': [ 0x1e, 0x93, 0x07, ],
+        'signature': [0x1e, 0x93, 0x07, ],
         'flashPageWords': 32,
         'flashPagesCount': 128,
         'eepromSize': 512,
@@ -64,7 +64,7 @@ cpuList = [
     }, {
         'id': 'atmega88',
         'name': 'ATmega88',
-        'signature': [ 0x1e, 0x93, 0x0a, ],
+        'signature': [0x1e, 0x93, 0x0a, ],
         'flashPageWords': 32,
         'flashPagesCount': 128,
         'eepromSize': 512,
@@ -72,7 +72,7 @@ cpuList = [
     }, {
         'id': 'atmega88p',
         'name': 'ATmega88p',
-        'signature': [ 0x1e, 0x93, 0x0f, ],
+        'signature': [0x1e, 0x93, 0x0f, ],
         'flashPageWords': 32,
         'flashPagesCount': 128,
         'eepromSize': 512,
@@ -80,7 +80,7 @@ cpuList = [
     }, {
         'id': 'atmega16',
         'name': 'ATmega16',
-        'signature': [ 0x1e, 0x94, 0x03, ],
+        'signature': [0x1e, 0x94, 0x03, ],
         'flashPageWords': 64,
         'flashPagesCount': 128,
         'eepromSize': 512,
@@ -88,7 +88,7 @@ cpuList = [
     }, {
         'id': 'atmega162',
         'name': 'ATmega162',
-        'signature': [ 0x1e, 0x94, 0x04, ],
+        'signature': [0x1e, 0x94, 0x04, ],
         'flashPageWords': 64,
         'flashPagesCount': 128,
         'eepromSize': 512,
@@ -96,7 +96,7 @@ cpuList = [
     }, {
         'id': 'atmega164a',
         'name': 'ATmega164p',
-        'signature': [ 0x1e, 0x94, 0x0f, ],
+        'signature': [0x1e, 0x94, 0x0f, ],
         'flashPageWords': 64,
         'flashPagesCount': 128,
         'eepromSize': 512,
@@ -104,7 +104,7 @@ cpuList = [
     }, {
         'id': 'atmega164p',
         'name': 'ATmega164p',
-        'signature': [ 0x1e, 0x94, 0x0a, ],
+        'signature': [0x1e, 0x94, 0x0a, ],
         'flashPageWords': 64,
         'flashPagesCount': 128,
         'eepromSize': 512,
@@ -112,7 +112,7 @@ cpuList = [
     }, {
         'id': 'atmega168',
         'name': 'ATmega168',
-        'signature': [ 0x1e, 0x94, 0x06, ],
+        'signature': [0x1e, 0x94, 0x06, ],
         'flashPageWords': 64,
         'flashPagesCount': 128,
         'eepromSize': 512,
@@ -120,7 +120,7 @@ cpuList = [
     }, {
         'id': 'atmega168p',
         'name': 'ATmega168p',
-        'signature': [ 0x1e, 0x94, 0x0b, ],
+        'signature': [0x1e, 0x94, 0x0b, ],
         'flashPageWords': 64,
         'flashPagesCount': 128,
         'eepromSize': 512,
@@ -128,7 +128,7 @@ cpuList = [
     }, {
         'id': 'atmega32',
         'name': 'ATmega32',
-        'signature': [ 0x1e, 0x95, 0x02, ],
+        'signature': [0x1e, 0x95, 0x02, ],
         'flashPageWords': 64,
         'flashPagesCount': 256,
         'eepromSize': 1024,
@@ -136,7 +136,7 @@ cpuList = [
     }, {
         'id': 'atmega324p',
         'name': 'ATmega324P',
-        'signature': [ 0x1e, 0x95, 0x08, ],
+        'signature': [0x1e, 0x95, 0x08, ],
         'flashPageWords': 64,
         'flashPagesCount': 256,
         'eepromSize': 1024,
@@ -144,7 +144,7 @@ cpuList = [
     }, {
         'id': 'atmega324a',
         'name': 'ATmega324A',
-        'signature': [ 0x1e, 0x95, 0x15, ],
+        'signature': [0x1e, 0x95, 0x15, ],
         'flashPageWords': 64,
         'flashPagesCount': 256,
         'eepromSize': 1024,
@@ -152,7 +152,7 @@ cpuList = [
     }, {
         'id': 'atmega324pa',
         'name': 'ATmega324PA',
-        'signature': [ 0x1e, 0x95, 0x11, ],
+        'signature': [0x1e, 0x95, 0x11, ],
         'flashPageWords': 64,
         'flashPagesCount': 256,
         'eepromSize': 1024,
@@ -160,7 +160,7 @@ cpuList = [
     }, {
         'id': 'atmega328p',
         'name': 'ATmega328p',
-        'signature': [ 0x1e, 0x95, 0x0f, ],
+        'signature': [0x1e, 0x95, 0x0f, ],
         'flashPageWords': 64,
         'flashPagesCount': 256,
         'eepromSize': 1024,
@@ -168,7 +168,7 @@ cpuList = [
     }, {
         'id': 'atmega64',
         'name': 'ATmega64',
-        'signature': [ 0x1e, 0x96, 0x02, ],
+        'signature': [0x1e, 0x96, 0x02, ],
         'flashPageWords': 128,
         'flashPagesCount': 256,
         'eepromSize': 2048,
@@ -176,7 +176,7 @@ cpuList = [
     }, {
         'id': 'atmega644',
         'name': 'ATmega644',
-        'signature': [ 0x1e, 0x96, 0x09, ],
+        'signature': [0x1e, 0x96, 0x09, ],
         'flashPageWords': 128,
         'flashPagesCount': 256,
         'eepromSize': 2048,
@@ -184,7 +184,7 @@ cpuList = [
     }, {
         'id': 'atmega644p',
         'name': 'ATmega644P',
-        'signature': [ 0x1e, 0x96, 0x0A, ],
+        'signature': [0x1e, 0x96, 0x0A, ],
         'flashPageWords': 128,
         'flashPagesCount': 256,
         'eepromSize': 2048,
@@ -192,23 +192,23 @@ cpuList = [
     }, {
         'id': 'atmega128',
         'name': 'ATmega128',
-        'signature': [ 0x1e, 0x97, 0x02, ],
+        'signature': [0x1e, 0x97, 0x02, ],
         'flashPageWords': 128,
         'flashPagesCount': 512,
         'eepromSize': 4096,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
     }, {
-        'id' : 'atmega1284',
+        'id': 'atmega1284',
         'name': 'ATmega128',
-        'signature': [ 0x1e, 0x97, 0x06, ],
+        'signature': [0x1e, 0x97, 0x06, ],
         'flashPageWords': 128,
         'flashPagesCount': 512,
         'eepromSize': 4096,
         'fuses': ['fusel', 'fuseh', 'fusee', 'lock', 'cal'],
     }, {
-        'id' : 'atmega1284p',
+        'id': 'atmega1284p',
         'name': 'ATmega128',
-        'signature': [ 0x1e, 0x97, 0x05, ],
+        'signature': [0x1e, 0x97, 0x05, ],
         'flashPageWords': 128,
         'flashPagesCount': 512,
         'eepromSize': 4096,
@@ -218,7 +218,7 @@ cpuList = [
 
 
 class Dbg:
-    def __init__(self, verbose = 3, gaugeLength = 50, useColors = True):
+    def __init__(self, verbose=3, gaugeLength=50, useColors=True):
         self.gaugeLength = gaugeLength
         self.loglevel = verbose
         self.useColors = useColors
@@ -235,9 +235,11 @@ class Dbg:
             'white': '\033[1;98m',
             'normal': '\033[0m',
         }
+
     def setVerbose(self, loglevel):
         self.loglevel = loglevel
-    def log(self, message, loglevel = 3, color = None):
+
+    def log(self, message, loglevel=3, color=None):
         if loglevel < self.loglevel:
             if self.gaugeStrLen:
                 sys.stderr.write('\n')
@@ -246,26 +248,31 @@ class Dbg:
                 sys.stderr.write(self.colors[color] + str(message) + self.colors['normal'] + '\n')
             else:
                 sys.stderr.write(str(message) + '\n')
-    def gauge(self, percentage, loglevel = 2):
+
+    def gauge(self, percentage, loglevel=2):
         if loglevel < self.loglevel:
             gauge = self.gaugeLength * percentage / 100
             gaugeStr = '[%s%s] %3d%%' % ('=' * gauge, ' ' * (self.gaugeLength - gauge),  percentage)
             sys.stderr.write('\b' * self.gaugeStrLen + gaugeStr)
             self.gaugeStrLen = len(gaugeStr)
             sys.stderr.flush()
-    def msg(self, message, loglevel = 2, color = 'white'):
-        self.log(message, loglevel = loglevel, color = color)
-    def info(self, message, loglevel = 2, color = 'gray'):
-        self.log(message, loglevel = loglevel, color = color)
-    def warning(self, message, loglevel = 1, color = 'yellow'):
-        self.log(message, loglevel = loglevel, color = color)
-    def error(self, message, loglevel = 1, color = 'red'):
-        self.log(message, loglevel = loglevel, color = color)
+
+    def msg(self, message, loglevel=2, color='white'):
+        self.log(message, loglevel=loglevel, color=color)
+
+    def info(self, message, loglevel=2, color='gray'):
+        self.log(message, loglevel=loglevel, color=color)
+
+    def warning(self, message, loglevel=1, color='yellow'):
+        self.log(message, loglevel=loglevel, color=color)
+
+    def error(self, message, loglevel=1, color='red'):
+        self.log(message, loglevel=loglevel, color=color)
 
 dbg = Dbg()
 
 
-def byteSize(val, mult = 1024, maxMult = 1, prefix = ' ', sufix = 'Bytes', units = ['', 'K', 'M', 'G', 'T',]):
+def byteSize(val, mult=1024, maxMult=1, prefix=' ', sufix='Bytes', units=['', 'K', 'M', 'G', 'T', ]):
     i = 0
     while val >= (maxMult * mult) and i < len(units) - 1:
         val /= mult
@@ -273,7 +280,7 @@ def byteSize(val, mult = 1024, maxMult = 1, prefix = ' ', sufix = 'Bytes', units
     return "%d%s%s%s" % (val, prefix, units[i], sufix)
 
 
-def readBytesFromFile(fileName, chunkSize = 64):
+def readBytesFromFile(fileName, chunkSize=64):
     with open(fileName, 'rb') as binaryFile:
         while True:
             chunk = binaryFile.read(chunkSize)
@@ -284,13 +291,14 @@ def readBytesFromFile(fileName, chunkSize = 64):
 
 
 class SrecException(Exception):
-    def __init__(self, msg = "SrecException."):
+    def __init__(self, msg="SrecException."):
         self.msg = msg
+
     def __str__(self):
         return self.msg
 
 
-def readBytesFromSrecFile(fileName, dataBuffer = []):
+def readBytesFromSrecFile(fileName, dataBuffer=[]):
     with open(fileName) as srecFile:
         loadSize = 0
         startAddr = None
@@ -316,7 +324,7 @@ def readBytesFromSrecFile(fileName, dataBuffer = []):
             for i in xrange(4 + addrLen * 2, bytesCount * 2 + 2, 2):
                 bytes.append(int(srec[i:i + 2], 16))
             if record == 0:
-                dbg.info('  srec header: ' + str(bytearray(bytes)), loglevel = 3)
+                dbg.info('  srec header: ' + str(bytearray(bytes)), loglevel=3)
             elif record in (1, 2, 3):
                 if startAddr is None:
                     startAddr = addr
@@ -324,11 +332,11 @@ def readBytesFromSrecFile(fileName, dataBuffer = []):
                     dataBuffer += [0xff] * (addr - len(dataBuffer))
                 dataBuffer[addr:addr + len(bytes)] = bytes
             loadSize += len(bytes)
-        dbg.info('  loaded from address: 0x%06x: %s' % (startAddr, byteSize(loadSize, maxMult = 10)))
+        dbg.info('  loaded from address: 0x%06x: %s' % (startAddr, byteSize(loadSize, maxMult=10)))
     return dataBuffer
 
 
-def crc16_update(crc, val, poly = 0xa001):
+def crc16_update(crc, val, poly=0xa001):
     crc ^= (val & 0x00ff)
     i = 0
     while (i < 8):
@@ -340,30 +348,36 @@ def crc16_update(crc, val, poly = 0xa001):
     return crc & 0xffff
 
 
-
 class AvrProgException(Exception):
-    def __init__(self, msg = "AvrProgException."):
+    def __init__(self, msg="AvrProgException."):
         self.msg = msg
+
     def __str__(self):
         return self.msg
+
 
 class NotConnectedException(AvrProgException):
     def __init__(self):
         pass
+
     def __str__(self):
         return "Not connected."
+
 
 class NotRespondingException(AvrProgException):
     def __init__(self):
         pass
+
     def __str__(self):
         return "Device is not responding."
+
 
 class NotReadyException(AvrProgException):
     def __init__(self, lines):
         self.lines = lines
+
     def __str__(self):
-        ret =  "Device is not ready"
+        ret = "Device is not ready"
         if not self.lines:
             return ret
         ret += ", received:"
@@ -371,10 +385,12 @@ class NotReadyException(AvrProgException):
             ret += "\n  %s" % line
         return ret
 
+
 class WrongAnswerException(AvrProgException):
-    def __init__(self, lines = None, expected = None):
+    def __init__(self, lines=None, expected=None):
         self.lines = lines
         self.expected = expected
+
     def __str__(self):
         ret = "Wrong answer from device"
         if self.lines:
@@ -382,43 +398,55 @@ class WrongAnswerException(AvrProgException):
             for line in self.lines:
                 ret += "\n  %s" % line
         if self.expected:
-            ret += "\nexpected: %s" % expected
+            ret += "\nexpected: %s" % self.expected
         return ret
+
 
 class NotEnoughtSpaceException(AvrProgException):
     def __init__(self, bufferSize, flashSize):
         self.bufferSize = bufferSize
         self.flashSize = flashSize
+
     def __str__(self):
         return "Not enought space in memmory, need %s, but %s only is free." % (byteSize(self.bufferSize), byteSize(self.flashSize))
+
 
 class BufferIsEmptyException(AvrProgException):
     def __init__(self):
         pass
+
     def __str__(self):
         return "Buffer is empty."
+
 
 class NotInBootloaderException(AvrProgException):
     def __init__(self):
         pass
+
     def __str__(self):
         return "Not in bootloader."
+
 
 class NotInProgrammerException(AvrProgException):
     def __init__(self):
         pass
+
     def __str__(self):
         return "Not in programmer."
+
 
 class UnknownCommandException(AvrProgException):
     def __init__(self, cmd):
         self.cmd = cmd
+
     def __str__(self):
         return "%s: command not found." % self.cmd
 
+
 class UnknownCpuException(AvrProgException):
-    def __init__(self, signature = []):
+    def __init__(self, signature=[]):
         self.signature = signature
+
     def __str__(self):
         if self.signature:
             msg = 'UnknownCPU with signature:'
@@ -429,11 +457,13 @@ class UnknownCpuException(AvrProgException):
             msg = 'Error detecting CPU.'
         return msg
 
+
 class NotExpectedCpuException(AvrProgException):
     def __init__(self, expected, detected):
         self.expected = expected
         self.detected = detected
         pass
+
     def __str__(self):
         expected = ''
         for cpu in self.expected:
@@ -443,17 +473,16 @@ class NotExpectedCpuException(AvrProgException):
         return "Expected CPU is %s, but detected: \'%s\'." % (expected, self.detected)
 
 
-
 class SerialTerminal:
     def __init__(self, port):
         self.ser = None
-        self.ser = serial.Serial(port, timeout = 1)
+        self.ser = serial.Serial(port, timeout=1)
 
     def __del__(self):
         if self.ser and self.ser.isOpen():
             self.ser.close()
 
-    def cmdReceive(self, resultLines = None):
+    def cmdReceive(self, resultLines=None):
         if not self.ser or not self.ser.isOpen():
             raise NotConnectedException()
         lines = []
@@ -472,16 +501,15 @@ class SerialTerminal:
                 if receivedLines < resultLines:
                     receivedLines += 1
                     dbg.gauge(100 * receivedLines / resultLines)
-            dbg.log("<< " + line, color = 'blue')
+            dbg.log("<< " + line, color='blue')
             if line == 'ready':
                 return lines
             lines.append(line)
 
-
-    def cmdSend(self, cmd, result = True, disableResultError = False, retry = 2, resultLines = None):
+    def cmdSend(self, cmd, result=True, disableResultError=False, retry=2, resultLines=None):
         if not self.ser or not self.ser.isOpen():
             raise NotConnectedException()
-        dbg.log(">> " + cmd, color = 'cyan')
+        dbg.log(">> " + cmd, color='cyan')
         self.ser.flushInput()
         self.ser.write(cmd)
         self.ser.write('\r\n\r\r')
@@ -490,12 +518,12 @@ class SerialTerminal:
             return []
         while retry > 0:
             try:
-                return self.cmdReceive(resultLines = resultLines)
+                return self.cmdReceive(resultLines=resultLines)
             except NotRespondingException, e:
                 self.ser.write('\r\n')
                 self.ser.flush()
                 if not disableResultError:
-                    dbg.warning('retrying', loglevel = 2)
+                    dbg.warning('retrying', loglevel=2)
             except NotReadyException, e:
                 if not disableResultError:
                     raise e
@@ -503,7 +531,6 @@ class SerialTerminal:
         if disableResultError:
             return None
         raise NotRespondingException()
-
 
 
 class AvrProg:
@@ -523,9 +550,8 @@ class AvrProg:
 
         self.dataBuffer = []
 
-
-    def cmdSend(self, cmd, resultOk = [], resultLines = None):
-        res = self.term.cmdSend(cmd, disableResultError = bool(resultOk), resultLines = resultLines)
+    def cmdSend(self, cmd, resultOk=[], resultLines=None):
+        res = self.term.cmdSend(cmd, disableResultError=bool(resultOk), resultLines=resultLines)
         statusOk = False
         error = ""
         for line in res:
@@ -559,19 +585,19 @@ class AvrProg:
     def isProgrammingDevice(self):
         return self.deviceName in ('avrprog', 'avrboot')
 
-    def readFile(self, fileName = ""):
+    def readFile(self, fileName=""):
         dbg.msg("loading file: %s" % fileName)
         if fileName.endswith('.srec'):
             readBytesFromSrecFile(fileName, self.dataBuffer)
         elif fileName.endswith('.hex'):
             raise AvrProgException('Intel hex file is not supported yet, use motorola srec file instead or binary')
         else:
-            dataBufer = []
+            self.dataBufer = []
             for byte in readBytesFromFile(fileName):
                 self.dataBuffer.append(byte)
 
     def clearBuffer(self):
-        dataBuffer = []
+        self.dataBuffer = []
 
     def signBuffer(self):
         dbg.msg("signing for bootloader")
@@ -582,7 +608,7 @@ class AvrProg:
         sizeLimit = self.flashSize - 4
         bufferSize = len(self.dataBuffer)
         if bufferSize > sizeLimit:
-            raise NotEnoughtSpaceException(bufferSize = bufferSize, flashSize = sizeLimit)
+            raise NotEnoughtSpaceException(bufferSize=bufferSize, flashSize=sizeLimit)
         bufferCrc16 = 0
         for byte in self.dataBuffer:
             bufferCrc16 = crc16_update(bufferCrc16, byte)
@@ -602,8 +628,7 @@ class AvrProg:
             count += 1
             line += ' %02x' % byte
             ascii += ('%c' % byte) if 0x20 <= byte < 0x7f else '.'
-        print(line + '   ' * (16 - count) + (' ' if (count <= 8) else '')  + ascii + ' ' * (16 - count) + '|')
-
+        print(line + '   ' * (16 - count) + (' ' if (count <= 8) else '') + ascii + ' ' * (16 - count) + '|')
 
     def printBuffer(self):
         dbg.msg("buffer hexdump:")
@@ -663,7 +688,7 @@ class AvrProg:
         if self.deviceCpu:
             dbg.info("  cpu: %s" % self.deviceCpu)
         if self.isBootloader():
-            dbg.info("  space: %s" % byteSize(self.flashSize - 4, maxMult = 100))
+            dbg.info("  space: %s" % byteSize(self.flashSize - 4, maxMult=100))
             dbg.info("  app: %s" % self.deviceCrcStatus)
 
     def flash(self):
@@ -709,17 +734,16 @@ class AvrProg:
             blocksWrited += 1
             dbg.gauge(blocksWrited * 100 / blocksToWrite)
 
-
     def reboot(self):
         if self.isKnownDevice():
             dbg.msg("rebooting")
-            self.term.cmdSend('reboot', disableResultError = True)
+            self.term.cmdSend('reboot', disableResultError=True)
         self.deviceName = ''
 
     def bootloader(self):
         if not self.isBootloader():
             dbg.msg("restarting in to bootloader")
-            self.term.cmdSend('bootloader', disableResultError = True)
+            self.term.cmdSend('bootloader', disableResultError=True)
         self.deviceName = ''
 
     def startBootloader(self):
@@ -757,7 +781,7 @@ class AvrProg:
         if not cpu or 'auto' in cpu:
             return
         if self.deviceCpu not in cpu:
-            raise NotExpectedCpuException(expected = cpu, detected = self.deviceCpu)
+            raise NotExpectedCpuException(expected=cpu, detected=self.deviceCpu)
 
     def erase(self):
         if not self.isProgrammer():
@@ -778,7 +802,7 @@ class AvrProg:
         dbg.msg("verifying flash")
         addrFrom = 0
         addrTo = len(self.dataBuffer) - 1
-        res = self.term.cmdSend('spi flash read %06x %06x' % (addrFrom, addrTo), resultLines = (addrTo - addrFrom) / 32)
+        res = self.term.cmdSend('spi flash read %06x %06x' % (addrFrom, addrTo), resultLines=(addrTo - addrFrom) / 32)
         for line in res:
             cmd = line.split()
             if cmd[0] == 'data':
@@ -804,8 +828,7 @@ class AvrProg:
                         raise AvrProgException('Verify error, addr: %06x dataBuffer: %02x flash: %02x' % (addrFrom, self.dataBuffer[addrFrom], byte))
                     addrFrom += 1
 
-
-    def flashDump(self, addresses = []):
+    def flashDownload(self, addresses=[]):
         if not self.isProgrammer():
             raise NotInProgrammerException()
         dbg.msg("reading flash")
@@ -816,12 +839,12 @@ class AvrProg:
         elif len(addresses) > 1:
             addrFrom = int(addresses[0], 16)
             addrTo = int(addresses[1], 16)
-        self.dataBuffer = [0xff,] * addrFrom
-        res = self.term.cmdSend('spi flash read %06x %06x' % (addrFrom, addrTo), resultLines = (addrTo - addrFrom) / 32)
+        self.dataBuffer = [0xff, ] * addrFrom
+        res = self.term.cmdSend('spi flash read %06x %06x' % (addrFrom, addrTo), resultLines=(addrTo - addrFrom) / 32)
         for line in res:
             cmd = line.split()
             if cmd[0] == 'data':
-                addr = int(cmd[1], 16)
+                # addr = int(cmd[1], 16)
                 byteList = []
                 byte = ''
                 crc8 = 0x00
@@ -838,7 +861,7 @@ class AvrProg:
                     raise AvrProgException('CRC8 error')
                 self.dataBuffer += byteList[:-1]
 
-    def spiFuse(self, fuseId, val = None):
+    def spiFuse(self, fuseId, val=None):
         res = self.term.cmdSend('spi ' + fuseId + ((' %02x' % val) if val else ''))
         for line in res:
             cmd = line.split()
@@ -897,7 +920,7 @@ try:
             print("  cpu[:<cpuid>]\n    connect to CPU, and detect it (if cpuid not match, programmer exit with error)")
             print("  erase\n    chip erase, cause erase flash, eeprom and lockbits")
             print("  flash\n    write buffer to flash")
-            print("  dump\n    read flash to buffer")
+            print("  download\n    read flash to buffer")
             print("  verify\n    verify flash with buffer")
             print("  fuse[:<fuseid>[:<value>]]\n    read fuse(s) or write fuse. value is in hex")
         elif cmd == 'about':
@@ -912,23 +935,23 @@ try:
             avrProg.readFile(arg[0])
         elif cmd == 'buffer':
             avrProg.printBuffer()
-        elif cmd =='port':
+        elif cmd == 'port':
             avrProg.connect(arg[0])
-        elif cmd =='bootloader':
+        elif cmd == 'bootloader':
             avrProg.startBootloader()
-        elif cmd =='reboot':
+        elif cmd == 'reboot':
             avrProg.reboot()
-        elif cmd =='sign':
+        elif cmd == 'sign':
             avrProg.signBuffer()
-        elif cmd =='cpu':
+        elif cmd == 'cpu':
             avrProg.setCpu(arg[0:])
-        elif cmd =='erase':
+        elif cmd == 'erase':
             avrProg.erase()
-        elif cmd =='flash':
+        elif cmd == 'flash':
             avrProg.flash()
-        elif cmd =='dump':
-            avrProg.flashDump(arg[0:])
-        elif cmd =='verify':
+        elif cmd == 'download':
+            avrProg.flashDownload(arg[0:])
+        elif cmd == 'verify':
             avrProg.flashVerify()
         elif cmd == 'fuse':
             avrProg.fuse(arg[0:])
@@ -941,5 +964,3 @@ except (IOError, serial.serialutil.SerialException, AvrProgException), e:
     dbg.error(e)
 except (KeyboardInterrupt), e:
     dbg.error('interrupted by keyboard')
-
-
