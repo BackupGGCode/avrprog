@@ -91,6 +91,7 @@ hex:	modules $(HEX)
 bin:	modules $(BIN)
 srec:	modules $(SREC)
 dump:	modules $(DUMP)
+help:	help_avr
 
 $(HEX): $(ELF)
 	@echo "  OC     $(@F) ($(<F))"
@@ -112,6 +113,17 @@ $(DUMP): $(ELF)
 meminfo: $(OBJ) $(OBJ_LTO) $(ELF)
 	@echo "  SIZE   $(NAME) ..."
 	$(V)$(SZ) $(SZFLAGS) $^
+
+help_avr:
+	@echo "AVR MAKE MODULE"
+	@echo "default target:"
+	@echo "  all:      build all (modules, srec, bin, hex and dump"
+	@echo "other targets:"
+	@echo "  srec:     create motorola hex file"
+	@echo "  hex:      create intel hex file"
+	@echo "  bin:      create binart file"
+	@echo "  dump:     create $(DUMP) file with compiled assembler code"
+	@echo
 
 include $(BASEDIR)/build.mk
 -include $(BASEDIR)/pg.mk

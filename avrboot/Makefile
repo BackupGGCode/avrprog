@@ -24,5 +24,6 @@ CCFLAGS += -D BOOT_ADDRESS=$(BOOT_ADDRESS) -D PROGPG_ADDRESS=$(PROGPG_ADDRESS)
 LNFLAGS += -Wl,--section-start=.text=$(BOOT_ADDRESS),--section-start=.progpg=$(PROGPG_ADDRESS)
 OCFLAGS += -j .progpg
 
+# includes
 include $(BASEDIR)/boards/$(BOARD).mk
 include $(BASEDIR)/avr.mk

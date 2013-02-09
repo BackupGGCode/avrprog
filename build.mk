@@ -4,7 +4,9 @@ MODULES ?=
 
 BASEDIR ?= .
 
-ECHOLEVEL := $(shell yes "\ " | head -n$(MAKELEVEL) | xargs echo)
+ifneq ($(MAKELEVEL),0)
+	ECHOLEVEL := $(shell yes "\ " | head -n$(MAKELEVEL) | xargs echo)
+endif
 
 ifeq ($(MAKECMDGOALS),clean)
 	MODULEGOAL := clean

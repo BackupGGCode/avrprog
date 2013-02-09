@@ -298,7 +298,7 @@ class SrecException(Exception):
         return self.msg
 
 
-def readBytesFromSrecFile(fileName, dataBuffer=[]):
+def readBytesFromSrecFile(fileName, dataBuffer=list()):
     with open(fileName) as srecFile:
         loadSize = 0
         startAddr = None
@@ -349,7 +349,7 @@ def crc16_update(crc, val, poly=0xa001):
 
 
 class AvrProgException(Exception):
-    def __init__(self, msg="AvrProgException."):
+    def __init__(self, msg="Error: AvrProgException."):
         self.msg = msg
 
     def __str__(self):
@@ -361,7 +361,7 @@ class NotConnectedException(AvrProgException):
         pass
 
     def __str__(self):
-        return "Not connected."
+        return "Error: not connected."
 
 
 class NotRespondingException(AvrProgException):
@@ -369,7 +369,7 @@ class NotRespondingException(AvrProgException):
         pass
 
     def __str__(self):
-        return "Device is not responding."
+        return "Error: device is not responding."
 
 
 class NotReadyException(AvrProgException):
@@ -377,7 +377,7 @@ class NotReadyException(AvrProgException):
         self.lines = lines
 
     def __str__(self):
-        ret = "Device is not ready"
+        ret = "Error: device is not ready"
         if not self.lines:
             return ret
         ret += ", received:"
@@ -392,7 +392,7 @@ class WrongAnswerException(AvrProgException):
         self.expected = expected
 
     def __str__(self):
-        ret = "Wrong answer from device"
+        ret = "Error: unexpected answer from device"
         if self.lines:
             ret += ", received:"
             for line in self.lines:
@@ -408,7 +408,7 @@ class NotEnoughtSpaceException(AvrProgException):
         self.flashSize = flashSize
 
     def __str__(self):
-        return "Not enought space in memmory, need %s, but %s only is free." % (byteSize(self.bufferSize), byteSize(self.flashSize))
+        return "Error: not enought space in memmory, need %s, but %s only is free." % (byteSize(self.bufferSize), byteSize(self.flashSize))
 
 
 class BufferIsEmptyException(AvrProgException):
@@ -416,7 +416,7 @@ class BufferIsEmptyException(AvrProgException):
         pass
 
     def __str__(self):
-        return "Buffer is empty."
+        return "Error: buffer is empty."
 
 
 class NotInBootloaderException(AvrProgException):
@@ -424,7 +424,7 @@ class NotInBootloaderException(AvrProgException):
         pass
 
     def __str__(self):
-        return "Not in bootloader."
+        return "Error: not in bootloader."
 
 
 class NotInProgrammerException(AvrProgException):
@@ -432,7 +432,7 @@ class NotInProgrammerException(AvrProgException):
         pass
 
     def __str__(self):
-        return "Not in programmer."
+        return "Error: not in programmer."
 
 
 class UnknownCommandException(AvrProgException):
@@ -440,21 +440,21 @@ class UnknownCommandException(AvrProgException):
         self.cmd = cmd
 
     def __str__(self):
-        return "%s: command not found." % self.cmd
+        return "Error: '%s' command not found." % self.cmd
 
 
 class UnknownCpuException(AvrProgException):
-    def __init__(self, signature=[]):
+    def __init__(self, signature=list()):
         self.signature = signature
 
     def __str__(self):
         if self.signature:
-            msg = 'UnknownCPU with signature:'
+            msg = 'Error: unknown CPU with signature:'
             for byte in self.signature:
                 msg += ' 0x%02x' % byte
             msg += '.'
         else:
-            msg = 'Error detecting CPU.'
+            msg = 'Error: detecting CPU.'
         return msg
 
 
@@ -465,12 +465,7 @@ class NotExpectedCpuException(AvrProgException):
         pass
 
     def __str__(self):
-        expected = ''
-        for cpu in self.expected:
-            if expected:
-                expected += ' or '
-            expected += "'%s'" % cpu
-        return "Expected CPU is %s, but detected: \'%s\'." % (expected, self.detected)
+        return "Error: detected CPU is %s but expected is %s." % (self.detected, ' or '.join(self.expected))
 
 
 class SerialTerminal:
@@ -550,7 +545,7 @@ class AvrProg:
 
         self.dataBuffer = []
 
-    def cmdSend(self, cmd, resultOk=[], resultLines=None):
+    def cmdSend(self, cmd, resultOk=list(), resultLines=None):
         res = self.term.cmdSend(cmd, disableResultError=bool(resultOk), resultLines=resultLines)
         statusOk = False
         error = ""
@@ -562,7 +557,7 @@ class AvrProg:
                     error += ', '
                 error += line
         if not statusOk and resultOk:
-            raise AvrProgException("'%s'' error, received: %s" % (cmd, error))
+            raise AvrProgException("Error: in answer to command: '%s' and was received: %s" % (cmd, error))
         return res
 
     def connect(self, port):
@@ -746,18 +741,24 @@ class AvrProg:
             self.term.cmdSend('bootloader', disableResultError=True)
         self.deviceName = ''
 
-    def startBootloader(self):
-        if self.isBootloader():
-            return
-        self.bootloader()
-        self.hello()
+    def startBootloader(self, cpu):
+        if not self.isBootloader():
+            self.bootloader()
+            self.hello()
         if not self.isBootloader():
             raise AvrProgException("Can not start bootloader.")
+        if not cpu or 'auto' in cpu:
+            return
+        if self.deviceCpu not in cpu:
+            raise NotExpectedCpuException(expected=cpu, detected=self.deviceCpu)
 
     def setCpu(self, cpu):
         dbg.msg("detecting CPU")
         if not self.isProgrammer():
-            raise NotInProgrammerException()
+            self.reboot()
+            self.hello()
+            if not self.isProgrammer():
+                raise NotInProgrammerException()
         self.deviceCpu = ''
         res = self.term.cmdSend('spi enable', ['spi enable ok'])
         signature = []
@@ -828,7 +829,7 @@ class AvrProg:
                         raise AvrProgException('Verify error, addr: %06x dataBuffer: %02x flash: %02x' % (addrFrom, self.dataBuffer[addrFrom], byte))
                     addrFrom += 1
 
-    def flashDownload(self, addresses=[]):
+    def flashDownload(self, addresses=list()):
         if not self.isProgrammer():
             raise NotInProgrammerException()
         dbg.msg("reading flash")
@@ -924,7 +925,7 @@ try:
             print("  verify\n    verify flash with buffer")
             print("  fuse[:<fuseid>[:<value>]]\n    read fuse(s) or write fuse. value is in hex")
         elif cmd == 'about':
-            print("avrprog %s (c)2012 pavel.revak@gmail.com" % VERSION)
+            print("avrprog %s (c)2012-2013 pavel.revak@gmail.com" % VERSION)
         elif cmd == 'cpulist':
             avrProg.printCpuList()
         elif cmd == 'verbose':
@@ -938,7 +939,7 @@ try:
         elif cmd == 'port':
             avrProg.connect(arg[0])
         elif cmd == 'bootloader':
-            avrProg.startBootloader()
+            avrProg.startBootloader(arg[0:])
         elif cmd == 'reboot':
             avrProg.reboot()
         elif cmd == 'sign':

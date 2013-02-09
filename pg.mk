@@ -1,8 +1,8 @@
 PG ?= python $(BASEDIR)/avrprog.py
-PORT ?= /dev/tty.avrprog
+PGPORT ?= /dev/tty.avrprog
 
 #PGFLAGS =
-PORTFLAG ?= port:$(PORT)
+PGPORTFLAG ?= port:$(PGPORT)
 
 ### define these fuses in your make file ###
 # FUSEL = 0x9f
@@ -24,28 +24,43 @@ ifdef LOCK
 	FUSE_LOCK = fuse:lock:$(LOCK)
 endif
 
-.PHONY: upload flash fuses download_flash buffer
+.PHONY: selfpg flash reflash dump_flash dump_fuses dump_buffer help
 
-upload: $(SREC)
+help: help_pg
+
+selfpg: $(SREC)
 	@echo "  UPLOAD  $<"
-	$(V)$(PG) $(PGFLAGS) load:$< $(PORTFLAG) bootloader sign flash reboot
+	$(V)$(PG) $(PGFLAGS) load:$< $(PGPORTFLAG) bootloader:$(MMCU) sign flash reboot
 
 flash: $(SREC)
 	@echo "  FLASH   $<"
-	$(V)$(PG) $(PGFLAGS) load:$< $(PORTFLAG) cpu:$(MMCU) erase $(FUSEFLAGS) flash verify $(FUSE_LOCK)
+	$(V)$(PG) $(PGFLAGS) load:$< $(PGPORTFLAG) cpu:$(MMCU) erase $(FUSEFLAGS) flash verify $(FUSE_LOCK)
 
-print_flash: $(SREC)
+reflash: $(SREC)
 	@echo "  FLASH   $<"
-	$(V)$(PG) $(PGFLAGS) load:$< buffer
+	$(V)$(PG) $(PGFLAGS) load:$< $(PGPORTFLAG) cpu:$(MMCU) erase flash
 
-fuses:
+dump_flash:
+	@echo "  DUMP FLASH"
+	$(V)$(PG) $(PGFLAGS) $(PGPORTFLAG) cpu download buffer
+
+dump_fuses:
 	@echo "  FUSES"
-	$(V)$(PG) $(PGFLAGS) $(PORTFLAG) cpu fuse
+	$(V)$(PG) $(PGFLAGS) $(PGPORTFLAG) cpu fuse
 
-download_flash:
-	@echo "  DUMP"
-	$(V)$(PG) $(PGFLAGS) $(PORTFLAG) cpu download buffer
-
-buffer: $(SREC)
-	@echo "  BUFFER  $<"
+dump_buffer: $(SREC)
+	@echo "  DUMP   $<"
 	$(V)$(PG) $(PGFLAGS) load:$< buffer
+
+help_pg:
+	@echo "PROGRAMMER MODULE"
+	@echo "bootloader targets:"
+	@echo "  selfpg:      flash program"
+	@echo "avrprog targets:"
+	@echo "  flash:       erase - flash program - flash all fuses and lock bit"
+	@echo "  reflash:     erase - flash program"
+	@echo "  dump_flash:  download flash and print it in hexa"
+	@echo "  dump_flash:  download fuses and print it"
+	@echo "common targets:"
+	@echo "  dump_buffer: print program (for flash) in hexa"
+	@echo
