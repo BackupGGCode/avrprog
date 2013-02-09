@@ -36,6 +36,9 @@ NO CARRIER 0 ERROR 0
 #define VERSION "v1.0"
 #define COPYRIGHT "2012 pavel.revak@gmail.com"
 #define USE_ECHO 1
+#define MIN_APP_SIZE 0x0020
+#define FORCE_STAY_IN_BOOTLOADER B, 1
+
 
 static uint16_t crc16_update(uint16_t crc, uint8_t a) {
 	uint8_t i;
@@ -53,7 +56,7 @@ static uint8_t checkCrc() {
 	uint16_t i;
 	uint16_t size = pgm_read_word(BOOT_ADDRESS - 4);
 	uint16_t crc16 = 0;
-	if (size < 0x0020) return 0;
+	if (size < MIN_APP_SIZE) return 0;
 	if (size > BOOT_ADDRESS - 4) return 0;
 	for (i = 0; i < size; i++) {
 		crc16 = crc16_update (crc16, pgm_read_byte(i));
@@ -230,14 +233,14 @@ int main() {
 		/* (reset default PUD is set, but application can clear this bit) */
 		/* .. then we stay in bootloader */
 		if (getPUD()) break;
-		/* test PINB1 (jumper - stay in bootloader) */
 		/* turn on PULL UP on this pin */
 		clrPUD();
-		PORTB |= _BV(PORTB1);
-		_delay_ms(10);
-		/* if PINB1 is cleared (jumper is detected) */
+		/* initialize FORCE_STAY_IN_BOOTLOADER */
+		inpPin(FORCE_STAY_IN_BOOTLOADER)
+		_delay_ms(1);
+		/* if jumper on PIN defined in FORCE_STAY_IN_BOOTLOADER is detected (connected to GND) */
 		/* .. then we stay in bootloader */
-		if (!((PINB >> PINB1) & 1)) break;
+		if (!getPin(FORCE_STAY_IN_BOOTLOADER)) break;
 		/* start app */
 		__asm__("ldi r30, 0x00");
 		__asm__("ldi r31, 0x00");
