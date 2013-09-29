@@ -18,7 +18,7 @@
 #include "drv/selfpg/selfpg.h"
 
 /*
-** bluetooth module send this after init and never answer on this!!!:
+** bluetooth module send this string after init and never answer on this!!!:
 !!! THIS IS BETA RELEASE AND MAY BE USED FOR EVALUATION PURPOSES ONLY !!!
 
 WRAP THOR AI (2.1.0 build 15)
@@ -38,7 +38,6 @@ NO CARRIER 0 ERROR 0
 #define USE_ECHO 1
 #define MIN_APP_SIZE 0x0020
 #define FORCE_STAY_IN_BOOTLOADER B, 1
-
 
 static uint16_t crc16_update(uint16_t crc, uint8_t a) {
 	uint8_t i;

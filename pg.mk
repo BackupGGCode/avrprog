@@ -32,11 +32,19 @@ selfpg: $(SREC)
 	@echo "  UPLOAD  $<"
 	$(V)$(PG) $(PGFLAGS) load:$< $(PGPORTFLAG) bootloader:$(MMCU) sign flash reboot
 
-flash: $(SREC)
+flash_all: $(SREC)
 	@echo "  FLASH   $<"
 	$(V)$(PG) $(PGFLAGS) load:$< $(PGPORTFLAG) cpu:$(MMCU) erase $(FUSEFLAGS) flash verify $(FUSE_LOCK)
 
-reflash: $(SREC)
+flash_fuse_write_verify: $(SREC)
+	@echo "  FLASH   $<"
+	$(V)$(PG) $(PGFLAGS) load:$< $(PGPORTFLAG) cpu:$(MMCU) erase $(FUSEFLAGS) flash verify $(FUSE_LOCK)
+
+flash_write_verify: $(SREC)
+	@echo "  FLASH   $<"
+	$(V)$(PG) $(PGFLAGS) load:$< $(PGPORTFLAG) cpu:$(MMCU) erase flash verify
+
+flash_write: $(SREC)
 	@echo "  FLASH   $<"
 	$(V)$(PG) $(PGFLAGS) load:$< $(PGPORTFLAG) cpu:$(MMCU) erase flash
 

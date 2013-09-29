@@ -2,7 +2,7 @@
 NAME ?= avrprog
 
 # board name (must board definitions)
-BOARD ?= avrboot_mega8_xtal
+BOARD ?= avrprog_mega8_xtal
 
 # path to base direcory (where is avr.mk)
 BASEDIR ?= ..
@@ -11,10 +11,10 @@ BASEDIR ?= ..
 OPTIMIZE ?= s
 
 # source files to compile
-SRC +=
+SRC += $(NAME).c
 
 # source files to compile with link-time-optimalisations
-SRC_LTO += $(NAME).c
+SRC_LTO +=
 
 # modules to build with project
 MODULES += drv/uart drv/spiprog drv/selfpg

@@ -13,3 +13,5 @@ FUSEL ?= 0x2f
 FUSEH ?= 0x90
 # FUSEE ?= 0xff
 # LOCK ?= 0xff
+
+CCFLAGS += -include $(realpath ../boards/$(BOARD).h)

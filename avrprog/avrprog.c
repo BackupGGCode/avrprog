@@ -43,7 +43,7 @@ NO CARRIER 0 ERROR 0
 */
 
 #define NAME "avrprog"
-#define VERSION "v1.0"
+#define VERSION "v1.1"
 #define COPYRIGHT "(c)2012 pavel.revak@gmail.com"
 
 static unsigned char avrCmd(unsigned char data1, unsigned char data2, unsigned char data3, unsigned char data4) {
@@ -53,11 +53,11 @@ static unsigned char avrCmd(unsigned char data1, unsigned char data2, unsigned c
 	return spiprogSend(data4);
 }
 
-//void printString(const char *str) {
-//	while(*str) {
-//		uartPutChar(*str++);
-//	}
-//}
+void printString(const char *str) {
+	while(*str) {
+		uartPutChar(*str++);
+	}
+}
 
 void printStringP(PGM_P str) {
 	char ch;
@@ -102,10 +102,9 @@ char compareString(PGM_P str1, char *str2) {
 }
 
 char readHex4(char ch) {
-	char h = -1;
-	if (ch >= '0' && ch <= '9') h = ch -'0';
-	if (ch >= 'a' && ch <= 'f') h = ch -'a' + 10;
-	return h;
+	if (ch >= '0' && ch <= '9') return ch - '0';
+	if (ch >= 'a' && ch <= 'f') return ch - 'a' + 10;
+	return -1;
 }
 
 char readHexNum(char *str, unsigned char *out, unsigned char bytes) {
@@ -140,18 +139,16 @@ char readHexString(const char *str, unsigned char *buffer, unsigned int size) {
 char readHexStringToSpi(const char *str, unsigned int blockSize) {
 	unsigned char count = 0;
 	char crc8 = 0x00;
-	char h1;
-	char h2;
 	blockSize >>= 1;
 	while (*str) {
-		h1 = readHex4(*str++);
+		char h1 = readHex4(*str++);
 		if (h1 == -1) return 1;
-		h2 = readHex4(*str++);
+		char h2 = readHex4(*str++);
 		if (h2 == -1) return 2;
 		h2 |= (h1 << 4);
 		crc8 ^= h2;
 		if (*str == 0) {
-			if (crc8 ) return 3;
+			if (crc8) return 3;
 			while (count < blockSize) {
 				avrCmd(0x40, 0x00, count, 0xff);
 				avrCmd(0x48, 0x00, count, 0xff);
@@ -184,215 +181,311 @@ void printState(char state) {
 static char ready = 0;
 static char echo = 0;
 static char spiprogEnabled = 0;
-void readCommand(char **cmd, char count) {
-	if (compareString(PSTR("hello"), cmd[0])) {
-		ready = 1;
-		printStringP(PSTR("\nhello\ndevice " NAME " " VERSION "\n"));
-	} else if (ready && compareString(PSTR("spi"), cmd[0])) {
-		if (count > 1) {
-			if (compareString(PSTR("enable"), cmd[1])) {
-				/* clear reset */
-				PORTB &= ~ _BV(PORTB2);
-				/* enable spi */
-				spiprogEnable();
-				_delay_ms(5);
-				/* set reset */
-				PORTB |= _BV(PORTB2);
-				_delay_ms(5);
-				/* clear reset */
-				PORTB &= ~ _BV(PORTB2);
-				_delay_ms(5);
-				/* avrprog start sequence */
-				spiprogSend(0xac);
-				spiprogSend(0x53);
-				unsigned char tmp = spiprogSend(0x00);
-				spiprogSend(0x00);
-				if (tmp == 0x53) {
-					spiprogEnabled = 1;
-					printStringP(PSTR("spi enable ok\nsignature "));
-					printHex8(avrCmd(0x30, 0x00, 0x00, 0x00));
-					uartPutChar(' ');
-					printHex8(avrCmd(0x30, 0x00, 0x01, 0x00));
-					uartPutChar(' ');
-					printHex8(avrCmd(0x30, 0x00, 0x02, 0x00));
-					uartPutChar('\n');
-				} else {
-					spiprogEnabled = 0;
-					/* disable spi */
-					spiprogDisable();
-					/* set reset */
-					PORTB |= _BV(PORTB2);
-					printStringP(PSTR("spi enable error\n"));
-				}
-			} else if (spiprogEnabled) {
-				unsigned char tmp;
-				if (compareString(PSTR("disable"), cmd[1])) {
-					spiprogEnabled = 0;
-					/* disable spi */
-					spiprogDisable();
-					/* set reset */
-					PORTB |= _BV(PORTB2);
-					printStringP(PSTR("spi disable ok\n"));
-				} else if (compareString(PSTR("lock"), cmd[1])) {
-					if (count > 2 && !readHexNum(cmd[2], &tmp, 1)) {
-						/* write lock */
-						avrCmd(0xac, 0xe0, 0x00, tmp);
-						_delay_ms(10);
-					}
-					/* read lock */
-					printStringP(PSTR("lock "));
-					printHex8(avrCmd(0x58, 0x00, 0x00, 0x00));	/* LOCK */
-					uartPutChar('\n');
-				} else if (compareString(PSTR("fusel"), cmd[1])) {
-					if (count > 2 && !readHexNum(cmd[2], &tmp, 1)) {
-						/* write fuse low */
-						avrCmd(0xac, 0xa0, 0x00, tmp);
-						_delay_ms(10);
-					}
-					/* read fuse low */
-					printStringP(PSTR("fusel "));
-					printHex8(avrCmd(0x50, 0x00, 0x00, 0x00));	/* LOW */
-					uartPutChar('\n');
-				} else if (compareString(PSTR("fuseh"), cmd[1])) {
-					if (count > 2 && !readHexNum(cmd[2], &tmp, 1)) {
-						/* write fuse low */
-						avrCmd(0xac, 0xa8, 0x00, tmp);
-						_delay_ms(10);
-					}
-					/* read fuse high */
-					printStringP(PSTR("fuseh "));
-					printHex8(avrCmd(0x58, 0x08, 0x00, 0x00));	/* HIGH */
-					uartPutChar('\n');
-				} else if (compareString(PSTR("fusee"), cmd[1])) {
-					if (count > 2 && !readHexNum(cmd[2], &tmp, 1)) {
-						/* write fuse low */
-						avrCmd(0xac, 0xa4, 0x00, tmp);
-						_delay_ms(10);
-					}
-					/* read fuse ext */
-					printStringP(PSTR("fusee "));
-					printHex8(avrCmd(0x50, 0x08, 0x00, 0x00));	/* EXT */
-					uartPutChar('\n');
-				} else if (compareString(PSTR("cal"), cmd[1])) {
-					/* read calibration byte */
-					printStringP(PSTR("cal "));
-					printHex8(avrCmd(0x38, 0x00, 0x00, 0x00));	/* CALIB */
-					uartPutChar('\n');
-				} else if (compareString(PSTR("flash"), cmd[1])) {
-					if (count > 2) {
-						if (compareString(PSTR("read"), cmd[2])) {
-							uint32_t addrFrom;
-							uint32_t addrTo;
-							if (count != 5 || readHexNum(cmd[3], (unsigned char *)&addrFrom, 3) || readHexNum(cmd[4], (unsigned char *)&addrTo, 3) || (addrFrom > addrTo)) {
-								printStringP(PSTR("bad parameters\n"));
-							} else {
-								addrFrom >>= 1;
-								addrTo >>= 1;
-								printStringP(PSTR("data "));
-								printHex24(addrFrom << 1);
-								uartPutChar(' ');
-								char crc8 = 0;
-								while (1) {
-									char tmp = avrCmd(0x20, (unsigned char)(addrFrom >> 8), (unsigned char)addrFrom, 0x00);
-									crc8 ^= tmp;
-									printHex8(tmp);
-									tmp = avrCmd(0x28, (unsigned char)(addrFrom >> 8), (unsigned char)addrFrom, 0x00);
-									crc8 ^= tmp;
-									printHex8(tmp);
-									if (addrFrom++ == addrTo) {
-										printHex8(crc8);
-										uartPutChar('\n');
-										break;
-									}
-									if ((addrFrom % 16) == 0) {
-										printHex8(crc8);
-										crc8 = 0;
-										printStringP(PSTR("\ndata "));
-										printHex24(addrFrom << 1);
-										uartPutChar(' ');
-										wdt_reset();
-									}
-								}
-							}
-						} else if (compareString(PSTR("write"), cmd[2])) {
-							unsigned long addr;
-							unsigned int blockSize;
-							char errorCode;
-							if (count != 6 || readHexNum(cmd[3], (unsigned char *)&blockSize, 2) || readHexNum(cmd[4], (unsigned char *)&addr, 3)) {
-								printStringP(PSTR("parameters error\n"));
-							} else if (addr % (unsigned long)blockSize) {
-								printStringP(PSTR("address error\n"));
-							} else if ((errorCode = readHexStringToSpi(cmd[5], blockSize))) {
-								printStringP(PSTR("data error: "));
-								printNum(errorCode);
-								uartPutChar('\n');
-							} else {
-								addr >>= 1;
-								avrCmd(0x4c, (unsigned char)(addr >> 8), (unsigned char)addr, 0);
-								_delay_ms(10);
-								printStringP(PSTR("flash ok\n"));
-							}
-						} else {
-							printStringP(PSTR("spi flash\nunknown command\n"));
-						}
-					}
-				} else if (compareString(PSTR("eeprom"), cmd[1])) {
-					printStringP(PSTR("not implemented\n"));
-					// TODO
-				} else if (compareString(PSTR("erase"), cmd[1])) {
-					/* chip erase */
-					avrCmd(0xac, 0x80, 0x00, 0x00);
-					_delay_ms(20);
-					printStringP(PSTR("erase ok\n"));
-				} else {
-					printStringP(PSTR("spi\nunknow command\n"));
-				}
-			} else {
-				printStringP(PSTR("spi not connected\n"));
-			}
-		}
-	} else if (ready && compareString(PSTR("echo"), cmd[0])) {
-		if (count == 2) {
-			echo = (*cmd[1] != '0');
-		}
-		printStringP(PSTR("echo "));
-		uartPutChar(echo + '0');
+
+void helloCommand() {
+	ready = 1;
+	printStringP(PSTR("\nhello\ndevice " NAME " " VERSION "\n"));
+}
+
+void echoCommand(char **cmd, char count) {
+	if (count == 1) {
+		echo = (*cmd[0] != '0');
+	}
+	printStringP(PSTR("echo "));
+	printState(echo);
+}
+
+void rebootCommand() {
+	printStringP(PSTR("rebooting..\n"));
+	wdt_enable(WDTO_250MS);
+	while(1);
+}
+
+void bootloaderCommand() {
+	printStringP(PSTR("starting bootloader..\n"));
+	_delay_ms(10);
+	cli();
+	spiprogClose();
+	uartClose();
+	/* SET PUD to stay in bootloader */
+	setPUD();
+
+	wdt_enable(WDTO_2S);
+	wdt_reset();
+
+	__asm__("ldi r30, 0x00");
+	__asm__("ldi r31, 0x0c");
+	__asm__("ijmp");
+}
+
+void spiEnableCommand() {
+	/* clear reset */
+	PORTB &= ~ _BV(PORTB2);
+	/* enable spi */
+	spiprogEnable();
+	_delay_ms(200);
+	/* set reset */
+	PORTB |= _BV(PORTB2);
+	_delay_ms(200);
+	/* clear reset */
+	PORTB &= ~ _BV(PORTB2);
+	_delay_ms(200);
+	/* avrprog start sequence */
+	spiprogSend(0xac);
+	spiprogSend(0x53);
+	unsigned char tmp = spiprogSend(0x12);
+	spiprogSend(0x00);
+	_delay_ms(200);
+	if (tmp == 0x53) {
+		spiprogEnabled = 1;
+		printStringP(PSTR("spi enable ok\nsignature "));
+		printHex8(avrCmd(0x30, 0x00, 0x00, 0x00));
+		uartPutChar(' ');
+		printHex8(avrCmd(0x30, 0x00, 0x01, 0x00));
+		uartPutChar(' ');
+		printHex8(avrCmd(0x30, 0x00, 0x02, 0x00));
 		uartPutChar('\n');
-	} else if (ready && compareString(PSTR("reboot"), cmd[0])) {
-		printStringP(PSTR("rebooting..\n"));
-		wdt_enable(WDTO_250MS);
-		while(1);
-	} else if (ready && compareString(PSTR("flashboot"), cmd[0])) {
-		/* flash <addr_16bit> <PG_MAGIC> <data_SPM_PAGESIZE> */
-		static uint16_t addr;
-		static uint16_t pgMagic;
-		static unsigned char buff[SPM_PAGESIZE + 1];
-		if (count != 4 || readHexNum(cmd[1], (unsigned char *)&addr, 2) || readHexNum(cmd[2], (unsigned char *)&pgMagic, 2)) {
-			printStringP(PSTR("bad parameters\n"));
-		} else if (readHexString(cmd[3], buff, SPM_PAGESIZE) == -1) {
-			printStringP(PSTR("data error\n"));
-		} else if (programPage(addr, (uint16_t *)buff, pgMagic)) {
-			printStringP(PSTR("flash error\n"));
-		} else {
-			printStringP(PSTR("flash ok\n"));
-		}
-	} else if (ready && compareString(PSTR("bootloader"), cmd[0])) {
-		printStringP(PSTR("starting bootloader..\n"));
+	} else {
+		spiprogEnabled = 0;
+		/* disable spi */
+		spiprogDisable();
+		/* set reset */
+		PORTB |= _BV(PORTB2);
+		printStringP(PSTR("spi enable error: "));
+		printHex8(tmp);
+		uartPutChar('\n');
+	}
+}
+
+void spiDisableCommand() {
+	spiprogEnabled = 0;
+	/* disable spi */
+	spiprogDisable();
+	/* set reset */
+	PORTB |= _BV(PORTB2);
+	printStringP(PSTR("spi disable ok\n"));
+}
+
+void spiLockCommand(char **cmd, char count) {
+	unsigned char tmp;
+	if (count > 2 && !readHexNum(*cmd, &tmp, 1)) {
+		/* write lock */
+		avrCmd(0xac, 0xe0, 0x00, tmp);
 		_delay_ms(10);
-		cli();
-		spiprogClose();
-		uartClose();
-		/* SET PUD to stay in bootloader */
-		setPUD();
+	}
+	/* read lock */
+	printStringP(PSTR("lock "));
+	printHex8(avrCmd(0x58, 0x00, 0x00, 0x00));	/* LOCK */
+	uartPutChar('\n');
+}
 
-		wdt_enable(WDTO_2S);
+void spiFuselCommand(char **cmd, char count) {
+	unsigned char tmp;
+	if (count > 2 && !readHexNum(*cmd, &tmp, 1)) {
+		/* write fuse low */
+		avrCmd(0xac, 0xa0, 0x00, tmp);
+		_delay_ms(10);
+	}
+	/* read fuse low */
+	printStringP(PSTR("fusel "));
+	printHex8(avrCmd(0x50, 0x00, 0x00, 0x00));	/* LOW */
+	uartPutChar('\n');
+}
+
+void spiFusehCommand(char **cmd, char count) {
+	unsigned char tmp;
+	if (count > 2 && !readHexNum(*cmd, &tmp, 1)) {
+		/* write fuse high */
+		avrCmd(0xac, 0xa8, 0x00, tmp);
+		_delay_ms(10);
+	}
+	/* read fuse high */
+	printStringP(PSTR("fuseh "));
+	printHex8(avrCmd(0x58, 0x08, 0x00, 0x00));	/* HIGH */
+	uartPutChar('\n');
+}
+
+void spiFuseeCommand(char **cmd, char count) {
+	unsigned char tmp;
+	if (count > 2 && !readHexNum(*cmd, &tmp, 1)) {
+		/* write fuse ext */
+		avrCmd(0xac, 0xa4, 0x00, tmp);
+		_delay_ms(10);
+	}
+	/* read fuse ext */
+	printStringP(PSTR("fusee "));
+	printHex8(avrCmd(0x50, 0x08, 0x00, 0x00));	/* EXT */
+	uartPutChar('\n');
+}
+
+void spiCalibrationByte() {
+	/* read calibration byte */
+	printStringP(PSTR("cal "));
+	printHex8(avrCmd(0x38, 0x00, 0x00, 0x00));	/* CALIB */
+	uartPutChar('\n');
+}
+
+void spiFlashReadCommand(char **cmd, char count) {
+	uint32_t addrFrom = 0;
+	uint32_t addrTo = 0;
+	if (
+		count != 2
+		|| readHexNum(cmd[0], (unsigned char *)&addrFrom, 3)
+		|| readHexNum(cmd[1], (unsigned char *)&addrTo, 3)
+		|| (addrFrom > addrTo)
+	) {
+		printStringP(PSTR("bad parameters\n"));
+		return;
+	}
+	while (addrFrom <= addrTo) {
 		wdt_reset();
+		printStringP(PSTR("data "));
+		printHex24(addrFrom);
+		uartPutChar(' ');
+		char crc8 = 0;
+		while (addrFrom <= addrTo) {
+			char tmp = avrCmd(
+				(addrFrom & 1) ? 0x28 : 0x20,
+				(unsigned char)(addrFrom >> 9),
+				(unsigned char)(addrFrom >> 1),
+				0x00
+			);
+			crc8 ^= tmp;
+			printHex8(tmp);
+			addrFrom++;
+			if (addrFrom % 32 == 0) break;
+		}
+		printHex8(crc8);
+		uartPutChar('\n');
+	}
+}
 
-		__asm__("ldi r30, 0x00");
-		__asm__("ldi r31, 0x0c");
-		__asm__("ijmp");
-	} else if (compareString(PSTR("NO"), cmd[0])) {
-		/* COMMAND FROM BLUETOOTH MODULE BLUEGIGA WT12 - client disconnected */
+void spiFlashWriteCommand(char **cmd, char count) {
+	unsigned long addr;
+	unsigned int blockSize;
+	char errorCode;
+	if (count != 3 || readHexNum(cmd[0], (unsigned char *)&blockSize, 2) || readHexNum(cmd[1], (unsigned char *)&addr, 3)) {
+		printStringP(PSTR("parameters error\n"));
+		return;
+	}
+	if (addr % (unsigned long)blockSize) {
+		printStringP(PSTR("address error\n"));
+		return;
+	}
+	if ((errorCode = readHexStringToSpi(cmd[2], blockSize))) {
+		printStringP(PSTR("data error: "));
+		printNum(errorCode);
+		uartPutChar('\n');
+		return;
+	}
+	addr >>= 1;
+	avrCmd(0x4c, (unsigned char)(addr >> 8), (unsigned char)addr, 0);
+	_delay_ms(5);
+	printStringP(PSTR("flash ok\n"));
+}
+
+void spiFlashCommand(char **cmd, char count) {
+	if (count == 0) {
+		printStringP(PSTR("spi flash ready\n"));
+		return;
+	}
+	char *command = *cmd;
+	cmd++;
+	count--;
+	if (compareString(PSTR("read"), command)) {
+		spiFlashReadCommand(cmd, count);
+	} else if (compareString(PSTR("write"), command)) {
+		spiFlashWriteCommand(cmd, count);
+	} else {
+		printStringP(PSTR("spi flash\nunknown command\n"));
+	}
+}
+
+void spiEraseCommand() {
+	/* chip erase */
+	avrCmd(0xac, 0x80, 0x00, 0x00);
+	_delay_ms(20);
+	printStringP(PSTR("erase ok\n"));
+}
+
+void spiCommand(char **cmd, char count) {
+	if (count == 0) {
+		printStringP(PSTR("spi "));
+		printState(spiprogEnabled);
+		return;
+	}
+	char *command = *cmd;
+	cmd++;
+	count--;
+	if (compareString(PSTR("enable"), command)) {
+		spiEnableCommand();
+	} else if (spiprogEnabled) {
+		if (compareString(PSTR("disable"), command)) {
+			spiDisableCommand();
+		} else if (compareString(PSTR("lock"), command)) {
+			spiLockCommand(cmd, count);
+		} else if (compareString(PSTR("fusel"), command)) {
+			spiFuselCommand(cmd, count);
+		} else if (compareString(PSTR("fuseh"), command)) {
+			spiFusehCommand(cmd, count);
+		} else if (compareString(PSTR("fusee"), command)) {
+			spiFuseeCommand(cmd, count);
+		} else if (compareString(PSTR("cal"), command)) {
+			spiCalibrationByte();
+		} else if (compareString(PSTR("flash"), command)) {
+			spiFlashCommand(cmd, count);
+		} else if (compareString(PSTR("eeprom"), command)) {
+			printStringP(PSTR("not implemented\n"));
+			// TODO
+		} else if (compareString(PSTR("erase"), command)) {
+			spiEraseCommand();
+		} else {
+			printStringP(PSTR("spi\nunknow command\n"));
+		}
+	} else {
+		printStringP(PSTR("spi not connected\n"));
+	}
+}
+
+void flashbootCommand(char **cmd, char count) {
+	/* flashboot <addr_16bit> <PG_MAGIC> <data_SPM_PAGESIZE> */
+	static uint16_t addr;
+	static uint16_t pgMagic;
+	static unsigned char buff[SPM_PAGESIZE + 1];
+	if (count != 3 || readHexNum(cmd[0], (unsigned char *)&addr, 2) || readHexNum(cmd[1], (unsigned char *)&pgMagic, 2)) {
+		printStringP(PSTR("bad parameters\n"));
+		return;
+	}
+	if (readHexString(cmd[3], buff, SPM_PAGESIZE) == -1) {
+		printStringP(PSTR("data error\n"));
+		return;
+	}
+	if (programPage(addr, (uint16_t *)buff, pgMagic)) {
+		printStringP(PSTR("flash error\n"));
+		return;
+	}
+	printStringP(PSTR("flash ok\n"));
+}
+
+void readCommand(char **cmd, char count) {
+	char *command = *cmd;
+	cmd++;
+	count--;
+	if (compareString(PSTR("hello"), command)) {
+		helloCommand();
+	} else if (ready && compareString(PSTR("spi"), command)) {
+		spiCommand(cmd, count);
+	} else if (ready && compareString(PSTR("echo"), command)) {
+		echoCommand(cmd, count);
+	} else if (ready && compareString(PSTR("reboot"), command)) {
+		rebootCommand();
+	} else if (ready && compareString(PSTR("flashboot"), command)) {
+		flashbootCommand(cmd, count);
+	} else if (ready && compareString(PSTR("bootloader"), command)) {
+		bootloaderCommand();
+	} else if (compareString(PSTR("NO"), command)) {
+		/* command from bluetooth module bluegiga wt12 - client disconnected or lost connection */
+		/* NO CARRIER 0 ERROR 0 */
 		if (spiprogEnabled) {
 			spiprogEnabled = 0;
 			/* disable spi */

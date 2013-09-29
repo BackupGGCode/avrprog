@@ -31,7 +31,7 @@ OPTIMIZE ?= s
 # SRC_LTO += $(NAME).c
 
 # modules used in project
-# MODULES +=
+# MODULES += drv/uart
 
 # other compiler and linker options
 CCFLAGS +=
@@ -42,11 +42,6 @@ OCFLAGS +=
 # include avr.mk
 
 ###
-
-
-# $(shell mkdir -p $(BUILDDIR) $(addprefix $(BUILDDIR)/,$(MODULES)))
-
-# MODDIR := $(realpath $(MODDIR))
 
 export CROSS_COMPILE ?= avr-
 
@@ -64,8 +59,8 @@ ifneq ($(VERBOSE),1)
 	export V := @
 endif
 
-export CCFLAGS += $(GCCFLAGS) -Wall -pedantic -std=c11 -c -D F_CPU=$(F_CPU) -D CPU=\"$(MMCU)\" -I$(realpath $(BASEDIR)) -fshort-enums
-export LNFLAGS += $(GCCFLAGS) -Wl,--cref -flto
+export CCFLAGS += $(GCCFLAGS) -Wall -pedantic -std=c1x -c -D F_CPU=$(F_CPU) -D CPU=\"$(MMCU)\" -I$(realpath $(BASEDIR)) -fshort-enums
+export LNFLAGS += $(GCCFLAGS) -Wl,--cref
 export OCFLAGS += -j .text -j .data
 export ODFLAGS += -S -w -a -f -d
 export SZFLAGS += -Bd

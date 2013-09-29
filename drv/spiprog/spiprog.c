@@ -17,6 +17,7 @@
 void spiprogInit() {
 	SPCR = _BV(MSTR) | _BV(SPR1);
 	SPSR = 0;
+	// spiprogSpeed(7);
 }
 
 void spiprogEnable() {
@@ -30,16 +31,19 @@ void spiprogDisable() {
 }
 
 void spiprogSpeed(unsigned char speed) {
-	SPCR &= ~ (_BV(SPR1) | _BV(SPR0)); SPSR &= ~ _BV(SPI2X);
-	switch (speed) {
-		case 2 : SPSR |= _BV(SPI2X); break;
-		case 4 : break;
-		case 8 : SPCR |= _BV(SPR0); SPSR |= _BV(SPI2X); break;
-		case 16 : SPCR |= _BV(SPR0); break;
-		case 32 : SPCR |= _BV(SPR1); SPSR |= _BV(SPI2X); break;
-		case 64 : SPCR |= _BV(SPR1); break;
-		case 128 : SPCR |= _BV(SPR1) | _BV(SPR0); break;
-	}
+	/*
+	0 - fsck / 2
+	1 - fsck / 4
+	2 - fsck / 8
+	3 - fsck / 16
+	4 - fsck / 32
+	5 - fsck / 64
+	6 - fsck / 64
+	7 - fsck / 128
+	*/
+	if (speed & 1) SPSR &= ~ _BV(SPI2X); else SPSR |= _BV(SPI2X);
+	if (speed & 2) SPCR |= _BV(SPR0); else SPCR &= ~ _BV(SPR0);
+	if (speed & 4) SPCR |= _BV(SPR1); else SPCR &= ~ _BV(SPR1);
 }
 
 unsigned char spiprogSend(unsigned char data) {
