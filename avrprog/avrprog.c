@@ -43,15 +43,13 @@ NO CARRIER 0 ERROR 0
 */
 
 #define NAME "avrprog"
-#define VERSION "v1.1"
-#define COPYRIGHT "(c)2012 pavel.revak@gmail.com"
+#define VERSION "v2.0"
+#define COPYRIGHT "(c)2012-2013 pavel.revak@gmail.com"
 
-static unsigned char avrCmd(unsigned char data1, unsigned char data2, unsigned char data3, unsigned char data4) {
-	spiprogSend(data1);
-	spiprogSend(data2);
-	spiprogSend(data3);
-	return spiprogSend(data4);
-}
+static char ready = 0;
+static char echo = 0;
+static char avrIspConnected = 0;
+
 
 void printString(const char *str) {
 	while(*str) {
@@ -66,6 +64,14 @@ void printStringP(PGM_P str) {
 	}
 }
 
+void printBoolP(char state, PGM_P off, PGM_P on) {
+	if (state) {
+		printStringP(on);
+	} else {
+		printStringP(off);
+	}
+}
+
 void printNum(unsigned long n) {
 	if (n > 9) {
 		printNum(n / 10);
@@ -73,14 +79,14 @@ void printNum(unsigned long n) {
 	uartPutChar('0' + n % 10);
 }
 
-void printHex4(unsigned char n) {
+void printBcd(unsigned char n) {
 	n &= 0x0f;
 	uartPutChar((n < 10) ? n + '0' : n + 'a' - 10);
 }
 
 void printHex8(uint8_t n) {
-	printHex4(n >> 4);
-	printHex4(n);
+	printBcd(n >> 4);
+	printBcd(n);
 }
 
 void printHex16(uint16_t n) {
@@ -88,124 +94,137 @@ void printHex16(uint16_t n) {
 	printHex8((uint8_t)n);
 }
 
-void printHex24(uint32_t n) {
+void printHex24(unsigned long n) {
 	printHex8((uint8_t)(n >> 16));
 	printHex8((uint8_t)(n >> 8));
 	printHex8((uint8_t)n);
 }
 
-char compareString(PGM_P str1, char *str2) {
-	while (pgm_read_byte(str1++) == *str2++) {
-		if (pgm_read_byte(str1) == 0 && *str2 == 0) return 1;
-	}
-	return 0;
-}
-
-char readHex4(char ch) {
+char parseBcd(char ch) {
 	if (ch >= '0' && ch <= '9') return ch - '0';
 	if (ch >= 'a' && ch <= 'f') return ch - 'a' + 10;
+	if (ch >= 'A' && ch <= 'F') return ch - 'A' + 10;
 	return -1;
 }
 
-char readHexNum(char *str, unsigned char *out, unsigned char bytes) {
+char parseHexNum(char *str, unsigned char *out, unsigned char bytes) {
 	while (bytes-- > 0) {
-		unsigned char h = readHex4(*str++) << 4;
-		if (h == -1) return 1;
-		h |= readHex4(*str++);
-		if (h == -1) return 1;
+		unsigned char h = parseBcd(*str++) << 4;
+		if (h == -1) return -1;
+		h |= parseBcd(*str++);
+		if (h == -1) return -1;
 		out[bytes] = h;
 	}
 	return 0;
 }
 
-char readHexString(const char *str, unsigned char *buffer, unsigned int size) {
-	unsigned int count = 0;
-	char crc8 = 0x00;
-	while (count++ < size && *str) {
-		unsigned char h = readHex4(*str++) << 4;
-		if (h == -1) return -1;
-		h |= readHex4(*str++);
-		if (h == -1) return -1;
-		*buffer++ = h;
-		crc8 ^= h;
+char compareStringP(const char *str1, PGM_P str2) {
+	while (*str1 == pgm_read_byte(str2)) {
+		if (*str1 == 0) return 1;
+		str1++;
+		str2++;
 	}
-	buffer--;
-	count--;
-	while (count++ <= size) *buffer++ = 0xff;
-	if (crc8) return -1;
-	return count;
+	return 0;
 }
 
-char readHexStringToSpi(const char *str, unsigned int blockSize) {
-	unsigned char count = 0;
-	char crc8 = 0x00;
-	blockSize >>= 1;
-	while (*str) {
-		char h1 = readHex4(*str++);
-		if (h1 == -1) return 1;
-		char h2 = readHex4(*str++);
-		if (h2 == -1) return 2;
-		h2 |= (h1 << 4);
-		crc8 ^= h2;
-		if (*str == 0) {
-			if (crc8) return 3;
-			while (count < blockSize) {
-				avrCmd(0x40, 0x00, count, 0xff);
-				avrCmd(0x48, 0x00, count, 0xff);
-				count++;
-			}
-			return 0;
+char uartReadChar() {
+	char ch;
+	do {
+		wdt_reset();
+		ch = uartGetChar();
+	} while (ch == 0x00 || ch == '\r');
+	if (ready && echo) uartPutChar(ch);
+	return ch;
+}
+
+/** read string from uart
+- remove spaces on begin
+- end on space or EOL
+@param out      output to store string
+@param len      buffer length
+@return         - ' ' if string ends with space
+                - '\n' if ends with EOL
+                - 0 if string is longer than len */
+char uartReadString(char *out, char len) {
+	char empty = 1;
+	while(len--) {
+		char ch = uartReadChar();
+		if (empty && ch == ' ') continue;
+		if (ch == '\n' || ch == ' ') {
+			*out = 0x00;
+			return ch;
 		}
-		if (count >= blockSize) return 3;
-		avrCmd(0x40, 0x00, count, h2);
-		h1 = readHex4(*str++);
-		if (h1 == -1) return 4;
-		h2 = readHex4(*str++);
-		if (h2 == -1) return 5;
-		h2 |= (h1 << 4);
-		crc8 ^= h2;
-		avrCmd(0x48, 0x00, count, h2);
-		count++;
+		empty = 0;
+		*out++ = ch;
 	}
-	return 6;
+	return 0;
 }
 
-void printState(char state) {
-	if (state) {
-		printStringP(PSTR("enabled\n"));
-	} else {
-		printStringP(PSTR("disabled\n"));
+/** wait for end of line
+@param ch       last readed character */
+void uartWaitForEol(char ch) {
+	while (ch != '\n') {
+		ch = uartReadChar();
 	}
 }
 
-static char ready = 0;
-static char echo = 0;
-static char spiprogEnabled = 0;
+static unsigned char avrCmd(unsigned char data1, unsigned char data2, unsigned char data3, unsigned char data4) {
+	spiprogSend(data1);
+	spiprogSend(data2);
+	spiprogSend(data3);
+	return spiprogSend(data4);
+}
+
+void avrDisconnectCommand() {
+	avrIspConnected = 0;
+	/* disable spi */
+	spiprogDisable();
+	/* set reset */
+	PORTB |= _BV(PORTB2);
+}
+
+void clientDisconnectCommand(char ch) {
+	ready = 0;
+	echo = 0;
+	uartWaitForEol(ch);
+	if (avrIspConnected) avrDisconnectCommand();
+}
+
+void tooLongCommand() {
+	uartWaitForEol(0);
+	printStringP(PSTR("error: command is too long\n"));
+}
+
+void badParam(char ch) {
+	uartWaitForEol(ch);
+	printStringP(PSTR("error: bad param\n"));
+}
+
+void unknownCommand(char ch, char *command) {
+	uartWaitForEol(ch);
+	printStringP(PSTR("error: unknown command "));
+	printString(command);
+	uartPutChar('\n');
+}
 
 void helloCommand() {
 	ready = 1;
 	printStringP(PSTR("\nhello\ndevice " NAME " " VERSION "\n"));
 }
 
-void echoCommand(char **cmd, char count) {
-	if (count == 1) {
-		echo = (*cmd[0] != '0');
-	}
-	printStringP(PSTR("echo "));
-	printState(echo);
-}
-
-void rebootCommand() {
+void rebootCommand(char ch) {
+	uartWaitForEol(ch);
 	printStringP(PSTR("rebooting..\n"));
 	wdt_enable(WDTO_250MS);
 	while(1);
 }
 
-void bootloaderCommand() {
+void bootloaderCommand(char ch) {
+	uartWaitForEol(ch);
 	printStringP(PSTR("starting bootloader..\n"));
 	_delay_ms(10);
 	cli();
-	spiprogClose();
+	// spiprogClose();
 	uartClose();
 	/* SET PUD to stay in bootloader */
 	setPUD();
@@ -218,27 +237,47 @@ void bootloaderCommand() {
 	__asm__("ijmp");
 }
 
-void spiEnableCommand() {
+void echoCommand(char ch) {
+	if (ch != '\n') {
+		char param[2];
+		ch = uartReadString(param, 2);
+		if (ch == '\n' && (*param == '0' || *param == '1')) {
+			echo = *param - '0';
+		} else {
+			badParam(ch);
+			return;
+		}
+	}
+	printStringP(PSTR("echo "));
+	printBoolP(echo, PSTR("disabled\n"), PSTR("enabled\n"));
+}
+
+void avrStatus() {
+	printStringP(PSTR("avr "));
+	printBoolP(avrIspConnected, PSTR("disconnected\n"), PSTR("connected\n"));
+}
+
+void avrConnectCommand() {
 	/* clear reset */
 	PORTB &= ~ _BV(PORTB2);
 	/* enable spi */
 	spiprogEnable();
-	_delay_ms(200);
+	_delay_ms(20);
 	/* set reset */
 	PORTB |= _BV(PORTB2);
-	_delay_ms(200);
+	_delay_ms(20);
 	/* clear reset */
 	PORTB &= ~ _BV(PORTB2);
-	_delay_ms(200);
+	_delay_ms(20);
 	/* avrprog start sequence */
 	spiprogSend(0xac);
 	spiprogSend(0x53);
 	unsigned char tmp = spiprogSend(0x12);
 	spiprogSend(0x00);
-	_delay_ms(200);
+	_delay_ms(20);
 	if (tmp == 0x53) {
-		spiprogEnabled = 1;
-		printStringP(PSTR("spi enable ok\nsignature "));
+		avrIspConnected = 1;
+		printStringP(PSTR("signature "));
 		printHex8(avrCmd(0x30, 0x00, 0x00, 0x00));
 		uartPutChar(' ');
 		printHex8(avrCmd(0x30, 0x00, 0x01, 0x00));
@@ -246,95 +285,41 @@ void spiEnableCommand() {
 		printHex8(avrCmd(0x30, 0x00, 0x02, 0x00));
 		uartPutChar('\n');
 	} else {
-		spiprogEnabled = 0;
-		/* disable spi */
-		spiprogDisable();
-		/* set reset */
-		PORTB |= _BV(PORTB2);
-		printStringP(PSTR("spi enable error: "));
+		avrDisconnectCommand();
+		printStringP(PSTR("error: connecting to avr "));
 		printHex8(tmp);
 		uartPutChar('\n');
 	}
 }
 
-void spiDisableCommand() {
-	spiprogEnabled = 0;
-	/* disable spi */
-	spiprogDisable();
-	/* set reset */
-	PORTB |= _BV(PORTB2);
-	printStringP(PSTR("spi disable ok\n"));
+void avrFlashEraseCommand() {
+	/* chip erase */
+	avrCmd(0xac, 0x80, 0x00, 0x00);
+	_delay_ms(20);
+	printStringP(PSTR("avr flash erase done\n"));
 }
 
-void spiLockCommand(char **cmd, char count) {
-	unsigned char tmp;
-	if (count > 2 && !readHexNum(*cmd, &tmp, 1)) {
-		/* write lock */
-		avrCmd(0xac, 0xe0, 0x00, tmp);
-		_delay_ms(10);
+void avrFlashReadCommand(char ch) {
+	if (ch == '\n') return;
+	char param[8];
+	ch = uartReadString(param, 8);
+	if (ch == 0 || ch == '\n') {
+		badParam(ch);
+		return;
 	}
-	/* read lock */
-	printStringP(PSTR("lock "));
-	printHex8(avrCmd(0x58, 0x00, 0x00, 0x00));	/* LOCK */
-	uartPutChar('\n');
-}
-
-void spiFuselCommand(char **cmd, char count) {
-	unsigned char tmp;
-	if (count > 2 && !readHexNum(*cmd, &tmp, 1)) {
-		/* write fuse low */
-		avrCmd(0xac, 0xa0, 0x00, tmp);
-		_delay_ms(10);
+	unsigned long addrFrom = 0;
+	if (parseHexNum(param, (unsigned char *)&addrFrom, 3)) {
+		badParam(ch);
+		return;
 	}
-	/* read fuse low */
-	printStringP(PSTR("fusel "));
-	printHex8(avrCmd(0x50, 0x00, 0x00, 0x00));	/* LOW */
-	uartPutChar('\n');
-}
-
-void spiFusehCommand(char **cmd, char count) {
-	unsigned char tmp;
-	if (count > 2 && !readHexNum(*cmd, &tmp, 1)) {
-		/* write fuse high */
-		avrCmd(0xac, 0xa8, 0x00, tmp);
-		_delay_ms(10);
+	ch = uartReadString(param, 8);
+	if (ch != '\n') {
+		badParam(ch);
+		return;
 	}
-	/* read fuse high */
-	printStringP(PSTR("fuseh "));
-	printHex8(avrCmd(0x58, 0x08, 0x00, 0x00));	/* HIGH */
-	uartPutChar('\n');
-}
-
-void spiFuseeCommand(char **cmd, char count) {
-	unsigned char tmp;
-	if (count > 2 && !readHexNum(*cmd, &tmp, 1)) {
-		/* write fuse ext */
-		avrCmd(0xac, 0xa4, 0x00, tmp);
-		_delay_ms(10);
-	}
-	/* read fuse ext */
-	printStringP(PSTR("fusee "));
-	printHex8(avrCmd(0x50, 0x08, 0x00, 0x00));	/* EXT */
-	uartPutChar('\n');
-}
-
-void spiCalibrationByte() {
-	/* read calibration byte */
-	printStringP(PSTR("cal "));
-	printHex8(avrCmd(0x38, 0x00, 0x00, 0x00));	/* CALIB */
-	uartPutChar('\n');
-}
-
-void spiFlashReadCommand(char **cmd, char count) {
-	uint32_t addrFrom = 0;
-	uint32_t addrTo = 0;
-	if (
-		count != 2
-		|| readHexNum(cmd[0], (unsigned char *)&addrFrom, 3)
-		|| readHexNum(cmd[1], (unsigned char *)&addrTo, 3)
-		|| (addrFrom > addrTo)
-	) {
-		printStringP(PSTR("bad parameters\n"));
+	unsigned long addrTo = 0;
+	if (parseHexNum(param, (unsigned char *)&addrTo, 3)) {
+		badParam(ch);
 		return;
 	}
 	while (addrFrom <= addrTo) {
@@ -358,170 +343,228 @@ void spiFlashReadCommand(char **cmd, char count) {
 		printHex8(crc8);
 		uartPutChar('\n');
 	}
+	printStringP(PSTR("avr flash read done\n"));
 }
 
-void spiFlashWriteCommand(char **cmd, char count) {
-	unsigned long addr;
-	unsigned int blockSize;
-	char errorCode;
-	if (count != 3 || readHexNum(cmd[0], (unsigned char *)&blockSize, 2) || readHexNum(cmd[1], (unsigned char *)&addr, 3)) {
-		printStringP(PSTR("parameters error\n"));
+char avrFlashWriteBuffer(unsigned char bufferSize) {
+	unsigned char bufferAddress = 0;
+	char crc8 = 0x00;
+	while (1) {
+		char param[3];
+		char ch = uartReadString(param, 2);
+		if (ch != 0) {
+			uartWaitForEol(ch);
+			printStringP(PSTR("unexpected end of data\n"));
+			return -1;
+		}
+		unsigned char data = 0xff;
+		if (parseHexNum(param, (unsigned char *)&data, 1)) {
+			uartWaitForEol(ch);
+			printStringP(PSTR("wrong data 0\n"));
+			return -1;
+		}
+		crc8 ^= data;
+		ch = uartReadString(param, 2);
+		if (ch != 0) {
+			if (crc8) {
+				uartWaitForEol(ch);
+				printStringP(PSTR("wrong checksum: "));
+				printHex8(crc8);
+				uartPutChar('\n');
+				return -1;
+			}
+			while (bufferAddress < bufferSize) {
+				avrCmd(0x40, 0x00, bufferAddress, 0xff);
+				avrCmd(0x48, 0x00, bufferAddress, 0xff);
+				bufferAddress++;
+			}
+			return 0;
+		}
+		if (bufferAddress >= bufferSize) {
+			uartWaitForEol(ch);
+			printStringP(PSTR("too long data\n"));
+			return -1;
+		}
+		avrCmd(0x40, 0x00, bufferAddress, data);
+		if (parseHexNum(param, (unsigned char *)&data, 1)) {
+			uartWaitForEol(ch);
+			printStringP(PSTR("wrong data 1\n"));
+			return -1;
+		}
+		crc8 ^= data;
+		avrCmd(0x48, 0x00, bufferAddress, data);
+		bufferAddress++;
+	}
+	return 6;
+}
+
+void avrFlashWriteCommand(char ch) {
+	if (ch == '\n') return;
+	char param[8];
+	ch = uartReadString(param, 8);
+	if (ch == 0 || ch == '\n') {
+		badParam(ch);
 		return;
 	}
-	if (addr % (unsigned long)blockSize) {
+	unsigned char bufferSize = 0;
+	if (parseHexNum(param, (unsigned char *)&bufferSize, 1)) {
+		badParam(ch);
+		return;
+	}
+	ch = uartReadString(param, 8);
+	if (ch == 0 || ch == '\n') {
+		badParam(ch);
+		return;
+	}
+	unsigned long addr = 0;
+	if (parseHexNum(param, (unsigned char *)&addr, 3)) {
+		badParam(ch);
+		return;
+	}
+	if (addr % (unsigned long)bufferSize) {
+		uartWaitForEol(ch);
 		printStringP(PSTR("address error\n"));
 		return;
 	}
-	if ((errorCode = readHexStringToSpi(cmd[2], blockSize))) {
-		printStringP(PSTR("data error: "));
-		printNum(errorCode);
-		uartPutChar('\n');
+	if ((avrFlashWriteBuffer(bufferSize))) {
 		return;
 	}
 	addr >>= 1;
 	avrCmd(0x4c, (unsigned char)(addr >> 8), (unsigned char)addr, 0);
 	_delay_ms(5);
-	printStringP(PSTR("flash ok\n"));
+	printStringP(PSTR("avr flash write done\n"));
 }
 
-void spiFlashCommand(char **cmd, char count) {
-	if (count == 0) {
-		printStringP(PSTR("spi flash ready\n"));
+void avrFlashCommand(char ch) {
+	if (ch == '\n') return;
+	char param[8];
+	ch = uartReadString(param, 8);
+	if (ch == 0) {
+		badParam(ch);
 		return;
 	}
-	char *command = *cmd;
-	cmd++;
-	count--;
-	if (compareString(PSTR("read"), command)) {
-		spiFlashReadCommand(cmd, count);
-	} else if (compareString(PSTR("write"), command)) {
-		spiFlashWriteCommand(cmd, count);
+	if (compareStringP(param, PSTR("erase"))) {
+		avrFlashEraseCommand(ch);
+	} else if (compareStringP(param, PSTR("read"))) {
+		avrFlashReadCommand(ch);
+	} else if (compareStringP(param, PSTR("write"))) {
+		avrFlashWriteCommand(ch);
 	} else {
-		printStringP(PSTR("spi flash\nunknown command\n"));
-	}
-}
-
-void spiEraseCommand() {
-	/* chip erase */
-	avrCmd(0xac, 0x80, 0x00, 0x00);
-	_delay_ms(20);
-	printStringP(PSTR("erase ok\n"));
-}
-
-void spiCommand(char **cmd, char count) {
-	if (count == 0) {
-		printStringP(PSTR("spi "));
-		printState(spiprogEnabled);
+		badParam(ch);
 		return;
 	}
-	char *command = *cmd;
-	cmd++;
-	count--;
-	if (compareString(PSTR("enable"), command)) {
-		spiEnableCommand();
-	} else if (spiprogEnabled) {
-		if (compareString(PSTR("disable"), command)) {
-			spiDisableCommand();
-		} else if (compareString(PSTR("lock"), command)) {
-			spiLockCommand(cmd, count);
-		} else if (compareString(PSTR("fusel"), command)) {
-			spiFuselCommand(cmd, count);
-		} else if (compareString(PSTR("fuseh"), command)) {
-			spiFusehCommand(cmd, count);
-		} else if (compareString(PSTR("fusee"), command)) {
-			spiFuseeCommand(cmd, count);
-		} else if (compareString(PSTR("cal"), command)) {
-			spiCalibrationByte();
-		} else if (compareString(PSTR("flash"), command)) {
-			spiFlashCommand(cmd, count);
-		} else if (compareString(PSTR("eeprom"), command)) {
-			printStringP(PSTR("not implemented\n"));
-			// TODO
-		} else if (compareString(PSTR("erase"), command)) {
-			spiEraseCommand();
-		} else {
-			printStringP(PSTR("spi\nunknow command\n"));
+}
+
+void avrFuseWriteReadCommand(char ch, unsigned char wrByte2, unsigned char rdByte1, unsigned char rdByte2, char* fuseId) {
+	unsigned char fuseValue;
+	if (ch == ' ') {
+		if (wrByte2 == 0x00) {
+			badParam(ch);
+			return;
 		}
+		char param[4];
+		ch = uartReadString(param, 4);
+		if (ch != '\n') {
+			badParam(ch);
+			return;
+		}
+		if (parseHexNum(param, (unsigned char *)&fuseValue, 1)) {
+			badParam(ch);
+			return;
+		}
+		avrCmd(0xac, wrByte2, 0x00, fuseValue);
+		_delay_ms(10);
+	}
+	fuseValue = avrCmd(rdByte1, rdByte2, 0x00, 0x00);
+	printStringP(PSTR("fuse "));
+	printString(fuseId);
+	uartPutChar(' ');
+	printHex8(fuseValue);
+	uartPutChar('\n');
+}
+
+void avrFuseCommand(char ch) {
+	if (ch == '\n') return;
+	char param[8];
+	ch = uartReadString(param, 8);
+	if (ch == 0) {
+		badParam(ch);
+		return;
+	}
+	if (compareStringP(param, PSTR("low"))) {
+		avrFuseWriteReadCommand(ch, 0xa0, 0x50, 0x00, param);	/* LOW */
+	} else if (compareStringP(param, PSTR("high"))) {
+		avrFuseWriteReadCommand(ch, 0xa8, 0x58, 0x08, param);	/* LOW */
+	} else if (compareStringP(param, PSTR("extend"))) {
+		avrFuseWriteReadCommand(ch, 0xa4, 0x50, 0x08, param);	/* LOW */
+	} else if (compareStringP(param, PSTR("lock"))) {
+		avrFuseWriteReadCommand(ch, 0xe0, 0x58, 0x00, param);	/* LOW */
+	} else if (compareStringP(param, PSTR("calib"))) {
+		avrFuseWriteReadCommand(ch, 0x00, 0x38, 0x00, param);	/* LOW */
 	} else {
-		printStringP(PSTR("spi not connected\n"));
+		badParam(ch);
+		return;
 	}
 }
 
-void flashbootCommand(char **cmd, char count) {
-	/* flashboot <addr_16bit> <PG_MAGIC> <data_SPM_PAGESIZE> */
-	static uint16_t addr;
-	static uint16_t pgMagic;
-	static unsigned char buff[SPM_PAGESIZE + 1];
-	if (count != 3 || readHexNum(cmd[0], (unsigned char *)&addr, 2) || readHexNum(cmd[1], (unsigned char *)&pgMagic, 2)) {
-		printStringP(PSTR("bad parameters\n"));
+void avrCommand(char ch) {
+	if (ch == '\n') {
+		avrStatus();
 		return;
 	}
-	if (readHexString(cmd[3], buff, SPM_PAGESIZE) == -1) {
-		printStringP(PSTR("data error\n"));
-		return;
+	char param[12];
+	ch = uartReadString(param, 12);
+	if (ch == 0) {
+		badParam(ch);
+	} else if (ch == '\n' && compareStringP(param, PSTR("connect"))) {
+		avrConnectCommand();
+		avrStatus();
+	} else if (ch == '\n' && compareStringP(param, PSTR("disconnect"))) {
+		avrDisconnectCommand();
+		avrStatus();
+	} else if (!avrIspConnected) {
+		uartWaitForEol(ch);
+		printStringP(PSTR("error: not connected to avr\n"));
+	} else if (compareStringP(param, PSTR("fuse"))) {
+		avrFuseCommand(ch);
+	} else if (compareStringP(param, PSTR("flash"))) {
+		avrFlashCommand(ch);
+	} else {
+		badParam(ch);
 	}
-	if (programPage(addr, (uint16_t *)buff, pgMagic)) {
-		printStringP(PSTR("flash error\n"));
-		return;
-	}
-	printStringP(PSTR("flash ok\n"));
 }
 
-void readCommand(char **cmd, char count) {
-	char *command = *cmd;
-	cmd++;
-	count--;
-	if (compareString(PSTR("hello"), command)) {
+void proccessCommand(char ch) {
+	char command[12];
+	ch = uartReadString(command, 12);
+	if (ch == '\n' && compareStringP(command, PSTR("hello"))) {
 		helloCommand();
-	} else if (ready && compareString(PSTR("spi"), command)) {
-		spiCommand(cmd, count);
-	} else if (ready && compareString(PSTR("echo"), command)) {
-		echoCommand(cmd, count);
-	} else if (ready && compareString(PSTR("reboot"), command)) {
-		rebootCommand();
-	} else if (ready && compareString(PSTR("flashboot"), command)) {
-		flashbootCommand(cmd, count);
-	} else if (ready && compareString(PSTR("bootloader"), command)) {
-		bootloaderCommand();
-	} else if (compareString(PSTR("NO"), command)) {
-		/* command from bluetooth module bluegiga wt12 - client disconnected or lost connection */
-		/* NO CARRIER 0 ERROR 0 */
-		if (spiprogEnabled) {
-			spiprogEnabled = 0;
-			/* disable spi */
-			spiprogDisable();
-			/* set reset */
-			PORTB |= _BV(PORTB2);
-		}
-		ready = 0;
+	} else if (!ready) {
 		return;
-	} else if (ready) {
-		printStringP(PSTR("unknown command\n"));
-	} else if (!ready) return;
+	} else if (ch == 0) {
+		tooLongCommand();
+	} else if (!*command) {
+		return;
+	} else if (compareStringP(command, PSTR("bye")) || compareStringP(command, PSTR("NO"))) {
+		/* command from bluetooth module bluegiga wt12 - client disconnected or lost connection: */
+		/* NO CARRIER 0 ERROR 0 */
+		clientDisconnectCommand(ch);
+		return;
+	} else if (compareStringP(command, PSTR("reboot"))) {
+		rebootCommand(ch);
+	} else if (compareStringP(command, PSTR("bootloader"))) {
+		bootloaderCommand(ch);
+	} else if (compareStringP(command, PSTR("echo"))) {
+		echoCommand(ch);
+	} else if (compareStringP(command, PSTR("avr"))) {
+		avrCommand(ch);
+	// } else if (compareStringP(command, PSTR("flashboot"))) {
+	// 	flashbootCommand(cmd, count);
+	} else {
+		unknownCommand(ch, command);
+	}
 	printStringP(PSTR("ready\n"));
 }
-
-char split(char *str, char **out, char max) {
-	unsigned char count = 0;
-	char inWord = 0;
-	while (*str != 0) {
-		if (*str == ' ') {
-			if (inWord) {
-				*str = 0;
-				inWord = 0;
-			}
-		} else if (!inWord) {
-			out[count++] = str;
-			if (count == max) break;
-			inWord = 1;
-		}
-		str++;
-	}
-	return count;
-}
-
-#define BUFFER_SIZE 640
-#define MAX_CMD_SPLIT 10
 
 int main() {
 	/* enable watchdog.. */
@@ -538,26 +581,8 @@ int main() {
 
 	sei();
 
-	static char buffer[BUFFER_SIZE];
-	unsigned int index = 0;
-
 	while(1) {
-		wdt_reset();
-		char ch = uartGetChar();
-		if (ch == 0) continue;
-		if (ready && echo) uartPutChar(ch);
-		if (ch != '\n' && ch != '\r') {
-			buffer[index++] = (char)ch;
-			if (index >= BUFFER_SIZE) index = 0;
-			buffer[index] = 0;
-			continue;
-		};
-		if (index == 0 || ch != '\n') continue;
-		static char *cmd[MAX_CMD_SPLIT];
-		char count = split(buffer, cmd, MAX_CMD_SPLIT);
-		if (count > 0) readCommand(cmd, count);
-		index = 0;
-		buffer[index] = 0;
+		proccessCommand(0);
 	}
 
 	return(0);
