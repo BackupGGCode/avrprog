@@ -21,5 +21,3 @@ flashing program to an AVR connected to avrprog:
 ```
 python avrprog.py port:/dev/tty.avrprog load:program.srec cpu erase flash verify
 ```
-
-more examples: AvrProg#examples
